@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: sf_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootsecret
+      MYSQL_DATABASE: smartfarm
+      MYSQL_USER: farmuser
+      MYSQL_PASSWORD: farmsecret
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    container_name: sf_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mariadb
+
+  backend:
+    build: ./backend
+    container_name: sf_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=farmuser
+      - DB_PASSWORD=farmsecret
+      - DB_NAME=smartfarm
+
+#  frontend:
+#    build: ./frontend
+#    container_name: sf_frontend
+#    restart: always
+#    ports:
+#      - "8501:8501"
+#    depends_on:
+#      - backend
+#      - mariadb
+
+volumes:
+  db_data:

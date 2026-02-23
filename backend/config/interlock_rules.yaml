@@ -1,0 +1,40 @@
+safety_rules:
+  # Priority 1: High Wind Lockdown
+  - id: HIGH_WIND_LOCKDOWN
+    trigger:
+      type: weather
+      condition: "wind_speed >= 15.0" # m/s (approx 54 km/h)
+    action:
+      priority: 1
+      target:
+        actuator_type: "ROOF_WINDOW"
+      command: "CLOSE"
+      lock: true
+      reason: "High wind emergency lockdown."
+      
+  # Priority 1: Heavy Rain Lockdown
+  - id: HEAVY_RAIN_LOCKDOWN
+    trigger:
+      type: weather
+      condition: "rainfall > 0.0" 
+    action:
+      priority: 1
+      target:
+        actuator_type: "ROOF_WINDOW"
+      command: "CLOSE"
+      lock: true
+      reason: "Rain emergency lockdown to protect crops."
+
+interlocks:
+  # Priority override logic (Interlock Rule)
+  # Prevent Heater from turning ON if Cooler is currently ON
+  - id: HEAT_COOL_CONFLICT
+    condition: "target.type == 'HEATER' and command == 'ON' and status_of(type='COOLER') == 'ON'"
+    action: "BLOCK"
+    reason: "Interlock Active: Cannot turn on Heater while Cooler is ON."
+    
+  # Prevent Cooler from turning ON if Heater is ON
+  - id: COOL_HEAT_CONFLICT
+    condition: "target.type == 'COOLER' and command == 'ON' and status_of(type='HEATER') == 'ON'"
+    action: "BLOCK"
+    reason: "Interlock Active: Cannot turn on Cooler while Heater is ON."
