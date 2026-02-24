@@ -1,0 +1,1346 @@
+[
+  {
+    "time": "02-17 04:00",
+    "HISTORY_HUMID_1": 38.95,
+    "HISTORY_TEMP_1": 20.73,
+    "HUMID_01": 41.4,
+    "HUM_01": 36.9,
+    "TEMP_01": 18.5
+  },
+  {
+    "time": "02-17 05:00",
+    "HUM_01": 39.05,
+    "TEMP_01": 19.6,
+    "HISTORY_HUMID_1": 40.85,
+    "HISTORY_TEMP_1": 21.17,
+    "HUMID_01": 40.9
+  },
+  {
+    "time": "02-17 06:00",
+    "HUM_01": 40.6,
+    "TEMP_01": 20.2,
+    "HISTORY_HUMID_1": 42.35,
+    "HISTORY_TEMP_1": 21.62,
+    "HUMID_01": 44.5
+  },
+  {
+    "time": "02-17 07:00",
+    "HISTORY_HUMID_1": 43.32,
+    "HISTORY_TEMP_1": 21.5,
+    "HUMID_01": 43.4,
+    "HUM_01": 41.35,
+    "TEMP_01": 20.93
+  },
+  {
+    "time": "02-17 08:00",
+    "HISTORY_HUMID_1": 42.95,
+    "HISTORY_TEMP_1": 22.45,
+    "HUMID_01": 45.8,
+    "HUM_01": 42.25,
+    "TEMP_01": 20.05
+  },
+  {
+    "time": "02-17 09:00",
+    "HISTORY_HUMID_1": 44.7,
+    "HISTORY_TEMP_1": 23.17,
+    "HUMID_01": 46.6,
+    "HUM_01": 42.7,
+    "TEMP_01": 20.35
+  },
+  {
+    "time": "02-17 10:00",
+    "TEMP_01": 22.08,
+    "HISTORY_HUMID_1": 46.0,
+    "HISTORY_TEMP_1": 23.18,
+    "HUMID_01": 47.1,
+    "HUM_01": 45.9
+  },
+  {
+    "time": "02-17 11:00",
+    "HUM_01": 45.15,
+    "TEMP_01": 22.75,
+    "HISTORY_HUMID_1": 48.07,
+    "HISTORY_TEMP_1": 23.95,
+    "HUMID_01": 48.0
+  },
+  {
+    "time": "02-17 12:00",
+    "HISTORY_TEMP_1": 23.73,
+    "HUMID_01": 47.0,
+    "HUM_01": 48.0,
+    "TEMP_01": 23.22,
+    "HISTORY_HUMID_1": 48.95
+  },
+  {
+    "time": "02-17 13:00",
+    "HISTORY_HUMID_1": 49.33,
+    "HISTORY_TEMP_1": 24.22,
+    "HUMID_01": 47.6,
+    "HUM_01": 49.7,
+    "TEMP_01": 23.65
+  },
+  {
+    "time": "02-17 14:00",
+    "HISTORY_HUMID_1": 51.12,
+    "HISTORY_TEMP_1": 25.53,
+    "HUMID_01": 49.5,
+    "HUM_01": 50.2,
+    "TEMP_01": 24.47
+  },
+  {
+    "time": "02-17 15:00",
+    "TEMP_01": 23.15,
+    "HISTORY_HUMID_1": 50.75,
+    "HISTORY_TEMP_1": 24.05,
+    "HUMID_01": 49.3,
+    "HUM_01": 52.25
+  },
+  {
+    "time": "02-17 16:00",
+    "HUM_01": 52.15,
+    "TEMP_01": 24.53,
+    "HISTORY_HUMID_1": 52.92,
+    "HISTORY_TEMP_1": 25.4,
+    "HUMID_01": 51.3
+  },
+  {
+    "time": "02-17 17:00",
+    "HISTORY_TEMP_1": 25.78,
+    "HUMID_01": 52.0,
+    "HUM_01": 54.15,
+    "TEMP_01": 24.55,
+    "HISTORY_HUMID_1": 53.0
+  },
+  {
+    "time": "02-17 18:00",
+    "HISTORY_HUMID_1": 53.12,
+    "HISTORY_TEMP_1": 26.43,
+    "HUMID_01": 53.8,
+    "HUM_01": 54.4,
+    "TEMP_01": 25.45
+  },
+  {
+    "time": "02-17 19:00",
+    "HISTORY_HUMID_1": 55.43,
+    "HISTORY_TEMP_1": 27.43,
+    "HUMID_01": 53.6,
+    "HUM_01": 56.45,
+    "TEMP_01": 25.12
+  },
+  {
+    "time": "02-17 20:00",
+    "HISTORY_HUMID_1": 55.85,
+    "HISTORY_TEMP_1": 27.38,
+    "HUMID_01": 55.1,
+    "HUM_01": 58.15,
+    "TEMP_01": 25.5
+  },
+  {
+    "time": "02-17 21:00",
+    "HUM_01": 56.9,
+    "TEMP_01": 26.95,
+    "HISTORY_HUMID_1": 57.32,
+    "HISTORY_TEMP_1": 27.4,
+    "HUMID_01": 54.3
+  },
+  {
+    "time": "02-17 22:00",
+    "HUM_01": 58.2,
+    "TEMP_01": 27.15,
+    "HISTORY_HUMID_1": 58.43,
+    "HISTORY_TEMP_1": 28.05,
+    "HUMID_01": 56.0
+  },
+  {
+    "time": "02-17 23:00",
+    "HISTORY_HUMID_1": 58.18,
+    "HISTORY_TEMP_1": 29.47,
+    "HUMID_01": 56.3,
+    "HUM_01": 61.05,
+    "TEMP_01": 27.53
+  },
+  {
+    "time": "02-18 00:00",
+    "HISTORY_HUMID_1": 35.8,
+    "HISTORY_TEMP_1": 19.1,
+    "HUMID_01": 36.6,
+    "HUM_01": 32.45,
+    "TEMP_01": 16.9
+  },
+  {
+    "time": "02-18 01:00",
+    "HISTORY_HUMID_1": 35.35,
+    "HISTORY_TEMP_1": 20.12,
+    "HUMID_01": 37.2,
+    "HUM_01": 31.95,
+    "TEMP_01": 17.77
+  },
+  {
+    "time": "02-18 02:00",
+    "TEMP_01": 17.7,
+    "HISTORY_HUMID_1": 37.97,
+    "HISTORY_TEMP_1": 21.07,
+    "HUMID_01": 42.0,
+    "HUM_01": 35.7
+  },
+  {
+    "time": "02-18 03:00",
+    "HUM_01": 35.9,
+    "TEMP_01": 17.62,
+    "HISTORY_HUMID_1": 38.8,
+    "HISTORY_TEMP_1": 19.97,
+    "HUMID_01": 41.3
+  },
+  {
+    "time": "02-18 04:00",
+    "HISTORY_TEMP_1": 20.35,
+    "HUMID_01": 42.1,
+    "HUM_01": 37.1,
+    "TEMP_01": 19.6,
+    "HISTORY_HUMID_1": 38.93
+  },
+  {
+    "time": "02-18 05:00",
+    "HISTORY_HUMID_1": 40.77,
+    "HISTORY_TEMP_1": 21.35,
+    "HUMID_01": 42.1,
+    "HUM_01": 38.05,
+    "TEMP_01": 20.12
+  },
+  {
+    "time": "02-18 06:00",
+    "HISTORY_HUMID_1": 42.25,
+    "HISTORY_TEMP_1": 20.6,
+    "HUMID_01": 41.4,
+    "HUM_01": 40.1,
+    "TEMP_01": 20.6
+  },
+  {
+    "time": "02-18 07:00",
+    "TEMP_01": 20.75,
+    "HISTORY_HUMID_1": 43.7,
+    "HISTORY_TEMP_1": 22.5,
+    "HUMID_01": 44.4,
+    "HUM_01": 42.05
+  },
+  {
+    "time": "02-18 08:00",
+    "HUM_01": 42.75,
+    "TEMP_01": 20.88,
+    "HISTORY_HUMID_1": 43.8,
+    "HISTORY_TEMP_1": 21.67,
+    "HUMID_01": 45.6
+  },
+  {
+    "time": "02-18 09:00",
+    "HISTORY_TEMP_1": 23.03,
+    "HUMID_01": 47.3,
+    "HUM_01": 42.9,
+    "TEMP_01": 21.8,
+    "HISTORY_HUMID_1": 45.68
+  },
+  {
+    "time": "02-18 10:00",
+    "HISTORY_HUMID_1": 45.27,
+    "HISTORY_TEMP_1": 23.7,
+    "HUMID_01": 48.4,
+    "HUM_01": 45.75,
+    "TEMP_01": 22.72
+  },
+  {
+    "time": "02-18 11:00",
+    "HISTORY_HUMID_1": 47.62,
+    "HISTORY_TEMP_1": 23.38,
+    "HUMID_01": 49.1,
+    "HUM_01": 46.7,
+    "TEMP_01": 21.62
+  },
+  {
+    "time": "02-18 12:00",
+    "HISTORY_HUMID_1": 48.77,
+    "HISTORY_TEMP_1": 24.25,
+    "HUMID_01": 46.8,
+    "HUM_01": 47.75,
+    "TEMP_01": 22.65
+  },
+  {
+    "time": "02-18 13:00",
+    "HUM_01": 49.6,
+    "TEMP_01": 23.72,
+    "HISTORY_HUMID_1": 49.18,
+    "HISTORY_TEMP_1": 24.3,
+    "HUMID_01": 48.2
+  },
+  {
+    "time": "02-18 14:00",
+    "HUM_01": 50.75,
+    "TEMP_01": 24.07,
+    "HISTORY_HUMID_1": 50.05,
+    "HISTORY_TEMP_1": 25.75,
+    "HUMID_01": 49.3
+  },
+  {
+    "time": "02-18 15:00",
+    "HISTORY_HUMID_1": 51.6,
+    "HISTORY_TEMP_1": 26.03,
+    "HUMID_01": 50.0,
+    "HUM_01": 51.45,
+    "TEMP_01": 24.2
+  },
+  {
+    "time": "02-18 16:00",
+    "HISTORY_HUMID_1": 53.52,
+    "HISTORY_TEMP_1": 25.65,
+    "HUMID_01": 52.5,
+    "HUM_01": 52.25,
+    "TEMP_01": 24.27
+  },
+  {
+    "time": "02-18 17:00",
+    "HISTORY_HUMID_1": 53.32,
+    "HISTORY_TEMP_1": 25.75,
+    "HUMID_01": 52.0,
+    "HUM_01": 53.3,
+    "TEMP_01": 24.55
+  },
+  {
+    "time": "02-18 18:00",
+    "TEMP_01": 25.3,
+    "HISTORY_HUMID_1": 53.93,
+    "HISTORY_TEMP_1": 26.42,
+    "HUMID_01": 53.8,
+    "HUM_01": 54.15
+  },
+  {
+    "time": "02-18 19:00",
+    "HUM_01": 55.9,
+    "TEMP_01": 25.58,
+    "HISTORY_HUMID_1": 55.62,
+    "HISTORY_TEMP_1": 27.4,
+    "HUMID_01": 54.7
+  },
+  {
+    "time": "02-18 20:00",
+    "HISTORY_TEMP_1": 26.93,
+    "HUMID_01": 56.0,
+    "HUM_01": 57.3,
+    "TEMP_01": 25.0,
+    "HISTORY_HUMID_1": 56.4
+  },
+  {
+    "time": "02-18 21:00",
+    "HISTORY_HUMID_1": 57.45,
+    "HISTORY_TEMP_1": 26.97,
+    "HUMID_01": 56.9,
+    "HUM_01": 58.5,
+    "TEMP_01": 26.32
+  },
+  {
+    "time": "02-18 22:00",
+    "HISTORY_HUMID_1": 59.1,
+    "HISTORY_TEMP_1": 28.35,
+    "HUMID_01": 55.1,
+    "HUM_01": 61.35,
+    "TEMP_01": 27.28
+  },
+  {
+    "time": "02-18 23:00",
+    "TEMP_01": 26.3,
+    "HISTORY_HUMID_1": 58.93,
+    "HISTORY_TEMP_1": 29.68,
+    "HUMID_01": 56.5,
+    "HUM_01": 60.1
+  },
+  {
+    "time": "02-19 00:00",
+    "HUM_01": 32.55,
+    "TEMP_01": 17.8,
+    "HISTORY_HUMID_1": 34.38,
+    "HISTORY_TEMP_1": 19.32,
+    "HUMID_01": 37.8
+  },
+  {
+    "time": "02-19 01:00",
+    "HISTORY_TEMP_1": 19.85,
+    "HUMID_01": 38.3,
+    "HUM_01": 33.8,
+    "TEMP_01": 17.88,
+    "HISTORY_HUMID_1": 36.1
+  },
+  {
+    "time": "02-19 02:00",
+    "HISTORY_HUMID_1": 38.38,
+    "HISTORY_TEMP_1": 19.8,
+    "HUMID_01": 40.6,
+    "HUM_01": 33.2,
+    "TEMP_01": 17.52
+  },
+  {
+    "time": "02-19 03:00",
+    "HISTORY_HUMID_1": 38.07,
+    "HISTORY_TEMP_1": 20.95,
+    "HUMID_01": 40.8,
+    "HUM_01": 37.2,
+    "TEMP_01": 18.65
+  },
+  {
+    "time": "02-19 04:00",
+    "HISTORY_HUMID_1": 39.97,
+    "HISTORY_TEMP_1": 20.9,
+    "HUMID_01": 42.8,
+    "HUM_01": 38.35,
+    "TEMP_01": 18.7
+  },
+  {
+    "time": "02-19 05:00",
+    "HUM_01": 37.75,
+    "TEMP_01": 19.27,
+    "HISTORY_HUMID_1": 40.88,
+    "HISTORY_TEMP_1": 21.68,
+    "HUMID_01": 41.4
+  },
+  {
+    "time": "02-19 06:00",
+    "HUM_01": 40.2,
+    "TEMP_01": 20.03,
+    "HISTORY_HUMID_1": 42.02,
+    "HISTORY_TEMP_1": 22.55,
+    "HUMID_01": 44.0
+  },
+  {
+    "time": "02-19 07:00",
+    "HISTORY_HUMID_1": 43.48,
+    "HISTORY_TEMP_1": 22.35,
+    "HUMID_01": 43.2,
+    "HUM_01": 41.15,
+    "TEMP_01": 19.65
+  },
+  {
+    "time": "02-19 08:00",
+    "HISTORY_HUMID_1": 44.1,
+    "HISTORY_TEMP_1": 22.17,
+    "HUMID_01": 44.8,
+    "HUM_01": 42.75,
+    "TEMP_01": 21.15
+  },
+  {
+    "time": "02-19 09:00",
+    "HISTORY_HUMID_1": 45.43,
+    "HISTORY_TEMP_1": 22.1,
+    "HUMID_01": 45.6,
+    "HUM_01": 43.35,
+    "TEMP_01": 20.77
+  },
+  {
+    "time": "02-19 10:00",
+    "TEMP_01": 21.9,
+    "HISTORY_HUMID_1": 45.62,
+    "HISTORY_TEMP_1": 23.62,
+    "HUMID_01": 47.9,
+    "HUM_01": 43.9
+  },
+  {
+    "time": "02-19 11:00",
+    "HUM_01": 47.2,
+    "TEMP_01": 23.22,
+    "HISTORY_HUMID_1": 47.22,
+    "HISTORY_TEMP_1": 23.65,
+    "HUMID_01": 45.8
+  },
+  {
+    "time": "02-19 12:00",
+    "HISTORY_TEMP_1": 24.4,
+    "HUMID_01": 46.9,
+    "HUM_01": 46.7,
+    "TEMP_01": 22.75,
+    "HISTORY_HUMID_1": 48.1
+  },
+  {
+    "time": "02-19 13:00",
+    "HISTORY_HUMID_1": 48.15,
+    "HISTORY_TEMP_1": 24.05,
+    "HUMID_01": 47.5,
+    "HUM_01": 48.75,
+    "TEMP_01": 22.7
+  },
+  {
+    "time": "02-19 14:00",
+    "HISTORY_HUMID_1": 50.17,
+    "HISTORY_TEMP_1": 24.95,
+    "HUMID_01": 48.8,
+    "HUM_01": 49.05,
+    "TEMP_01": 23.57
+  },
+  {
+    "time": "02-19 15:00",
+    "TEMP_01": 23.57,
+    "HISTORY_HUMID_1": 52.33,
+    "HISTORY_TEMP_1": 25.9,
+    "HUMID_01": 51.2,
+    "HUM_01": 50.15
+  },
+  {
+    "time": "02-19 16:00",
+    "HUM_01": 52.3,
+    "TEMP_01": 24.62,
+    "HISTORY_HUMID_1": 52.25,
+    "HISTORY_TEMP_1": 26.53,
+    "HUMID_01": 52.8
+  },
+  {
+    "time": "02-19 17:00",
+    "HISTORY_TEMP_1": 26.45,
+    "HUMID_01": 50.7,
+    "HUM_01": 53.8,
+    "TEMP_01": 25.58,
+    "HISTORY_HUMID_1": 52.62
+  },
+  {
+    "time": "02-19 18:00",
+    "HISTORY_HUMID_1": 55.0,
+    "HISTORY_TEMP_1": 27.1,
+    "HUMID_01": 52.7,
+    "HUM_01": 54.8,
+    "TEMP_01": 25.0
+  },
+  {
+    "time": "02-19 19:00",
+    "HISTORY_HUMID_1": 56.13,
+    "HISTORY_TEMP_1": 26.55,
+    "HUMID_01": 53.8,
+    "HUM_01": 55.9,
+    "TEMP_01": 25.55
+  },
+  {
+    "time": "02-19 20:00",
+    "HISTORY_HUMID_1": 55.95,
+    "HISTORY_TEMP_1": 28.28,
+    "HUMID_01": 54.8,
+    "HUM_01": 57.05,
+    "TEMP_01": 24.68
+  },
+  {
+    "time": "02-19 21:00",
+    "HUM_01": 57.75,
+    "TEMP_01": 25.98,
+    "HISTORY_HUMID_1": 56.85,
+    "HISTORY_TEMP_1": 28.12,
+    "HUMID_01": 57.3
+  },
+  {
+    "time": "02-19 22:00",
+    "HUM_01": 59.25,
+    "TEMP_01": 26.45,
+    "HISTORY_HUMID_1": 59.2,
+    "HISTORY_TEMP_1": 27.55,
+    "HUMID_01": 56.6
+  },
+  {
+    "time": "02-19 23:00",
+    "HISTORY_HUMID_1": 58.62,
+    "HISTORY_TEMP_1": 28.65,
+    "HUMID_01": 57.5,
+    "HUM_01": 59.65,
+    "TEMP_01": 26.98
+  },
+  {
+    "time": "02-20 00:00",
+    "HISTORY_HUMID_1": 34.67,
+    "HISTORY_TEMP_1": 18.68,
+    "HUMID_01": 37.2,
+    "HUM_01": 33.65,
+    "TEMP_01": 18.0
+  },
+  {
+    "time": "02-20 01:00",
+    "HISTORY_HUMID_1": 36.7,
+    "HISTORY_TEMP_1": 19.88,
+    "HUMID_01": 39.2,
+    "HUM_01": 33.25,
+    "TEMP_01": 18.43
+  },
+  {
+    "time": "02-20 02:00",
+    "TEMP_01": 19.1,
+    "HISTORY_HUMID_1": 36.65,
+    "HISTORY_TEMP_1": 19.75,
+    "HUMID_01": 38.9,
+    "HUM_01": 34.65
+  },
+  {
+    "time": "02-20 03:00",
+    "HUM_01": 36.65,
+    "TEMP_01": 18.77,
+    "HISTORY_HUMID_1": 38.48,
+    "HISTORY_TEMP_1": 21.13,
+    "HUMID_01": 42.3
+  },
+  {
+    "time": "02-20 04:00",
+    "HISTORY_TEMP_1": 20.0,
+    "HUMID_01": 43.5,
+    "HUM_01": 38.55,
+    "TEMP_01": 19.25,
+    "HISTORY_HUMID_1": 38.93
+  },
+  {
+    "time": "02-20 05:00",
+    "HISTORY_HUMID_1": 40.9,
+    "HISTORY_TEMP_1": 22.13,
+    "HUMID_01": 44.3,
+    "HUM_01": 38.85,
+    "TEMP_01": 19.97
+  },
+  {
+    "time": "02-20 06:00",
+    "HISTORY_HUMID_1": 42.53,
+    "HISTORY_TEMP_1": 22.65,
+    "HUMID_01": 44.9,
+    "HUM_01": 39.8,
+    "TEMP_01": 20.88
+  },
+  {
+    "time": "02-20 07:00",
+    "TEMP_01": 20.2,
+    "HISTORY_HUMID_1": 41.8,
+    "HISTORY_TEMP_1": 21.62,
+    "HUMID_01": 46.0,
+    "HUM_01": 40.1
+  },
+  {
+    "time": "02-20 08:00",
+    "HUM_01": 44.05,
+    "TEMP_01": 20.72,
+    "HISTORY_HUMID_1": 44.0,
+    "HISTORY_TEMP_1": 21.98,
+    "HUMID_01": 43.9
+  },
+  {
+    "time": "02-20 09:00",
+    "HISTORY_TEMP_1": 22.5,
+    "HUMID_01": 45.8,
+    "HUM_01": 43.55,
+    "TEMP_01": 21.78,
+    "HISTORY_HUMID_1": 45.18
+  },
+  {
+    "time": "02-20 10:00",
+    "HISTORY_HUMID_1": 46.3,
+    "HISTORY_TEMP_1": 23.92,
+    "HUMID_01": 45.7,
+    "HUM_01": 44.0,
+    "TEMP_01": 22.53
+  },
+  {
+    "time": "02-20 11:00",
+    "HISTORY_HUMID_1": 47.28,
+    "HISTORY_TEMP_1": 24.38,
+    "HUMID_01": 49.1,
+    "HUM_01": 45.75,
+    "TEMP_01": 22.35
+  },
+  {
+    "time": "02-20 12:00",
+    "HISTORY_HUMID_1": 48.03,
+    "HISTORY_TEMP_1": 23.93,
+    "HUMID_01": 47.8,
+    "HUM_01": 48.4,
+    "TEMP_01": 22.95
+  },
+  {
+    "time": "02-20 13:00",
+    "HUM_01": 50.4,
+    "TEMP_01": 22.9,
+    "HISTORY_HUMID_1": 49.1,
+    "HISTORY_TEMP_1": 24.25,
+    "HUMID_01": 50.7
+  },
+  {
+    "time": "02-20 14:00",
+    "HUM_01": 50.9,
+    "TEMP_01": 23.45,
+    "HISTORY_HUMID_1": 50.15,
+    "HISTORY_TEMP_1": 24.2,
+    "HUMID_01": 49.1
+  },
+  {
+    "time": "02-20 15:00",
+    "HISTORY_HUMID_1": 51.28,
+    "HISTORY_TEMP_1": 26.05,
+    "HUMID_01": 52.3,
+    "HUM_01": 52.85,
+    "TEMP_01": 23.05
+  },
+  {
+    "time": "02-20 16:00",
+    "HISTORY_HUMID_1": 51.87,
+    "HISTORY_TEMP_1": 25.25,
+    "HUMID_01": 50.0,
+    "HUM_01": 53.3,
+    "TEMP_01": 25.0
+  },
+  {
+    "time": "02-20 17:00",
+    "HISTORY_HUMID_1": 53.52,
+    "HISTORY_TEMP_1": 26.58,
+    "HUMID_01": 53.7,
+    "HUM_01": 52.6,
+    "TEMP_01": 24.83
+  },
+  {
+    "time": "02-20 18:00",
+    "TEMP_01": 24.2,
+    "HISTORY_HUMID_1": 53.6,
+    "HISTORY_TEMP_1": 26.4,
+    "HUMID_01": 52.7,
+    "HUM_01": 53.25
+  },
+  {
+    "time": "02-20 19:00",
+    "HUM_01": 56.2,
+    "TEMP_01": 26.03,
+    "HISTORY_HUMID_1": 54.65,
+    "HISTORY_TEMP_1": 26.57,
+    "HUMID_01": 53.3
+  },
+  {
+    "time": "02-20 20:00",
+    "HISTORY_TEMP_1": 27.4,
+    "HUMID_01": 55.8,
+    "HUM_01": 58.15,
+    "TEMP_01": 25.7,
+    "HISTORY_HUMID_1": 55.48
+  },
+  {
+    "time": "02-20 21:00",
+    "HISTORY_HUMID_1": 57.35,
+    "HISTORY_TEMP_1": 27.22,
+    "HUMID_01": 56.0,
+    "HUM_01": 59.75,
+    "TEMP_01": 26.95
+  },
+  {
+    "time": "02-20 22:00",
+    "HISTORY_HUMID_1": 58.6,
+    "HISTORY_TEMP_1": 28.38,
+    "HUMID_01": 55.0,
+    "HUM_01": 60.15,
+    "TEMP_01": 27.45
+  },
+  {
+    "time": "02-20 23:00",
+    "TEMP_01": 28.05,
+    "HISTORY_HUMID_1": 60.18,
+    "HISTORY_TEMP_1": 28.68,
+    "HUMID_01": 59.4,
+    "HUM_01": 61.45
+  },
+  {
+    "time": "02-21 00:00",
+    "HUM_01": 32.52,
+    "TEMP_01": 17.68,
+    "HISTORY_HUMID_1": 32.63,
+    "HISTORY_TEMP_1": 19.16,
+    "HUMID_01": 38.37
+  },
+  {
+    "time": "02-21 01:00",
+    "HISTORY_TEMP_1": 19.62,
+    "HUMID_01": 39.11,
+    "HUM_01": 33.79,
+    "TEMP_01": 18.11,
+    "HISTORY_HUMID_1": 33.83
+  },
+  {
+    "time": "02-21 02:00",
+    "HISTORY_HUMID_1": 35.09,
+    "HISTORY_TEMP_1": 20.0,
+    "HUMID_01": 39.97,
+    "HUM_01": 34.98,
+    "TEMP_01": 18.47
+  },
+  {
+    "time": "02-21 03:00",
+    "HISTORY_HUMID_1": 36.35,
+    "HISTORY_TEMP_1": 20.41,
+    "HUMID_01": 40.81,
+    "HUM_01": 36.22,
+    "TEMP_01": 18.92
+  },
+  {
+    "time": "02-21 04:00",
+    "HISTORY_HUMID_1": 37.56,
+    "HISTORY_TEMP_1": 20.82,
+    "HUMID_01": 41.59,
+    "HUM_01": 37.5,
+    "TEMP_01": 19.33
+  },
+  {
+    "time": "02-21 05:00",
+    "HUM_01": 38.75,
+    "TEMP_01": 19.73,
+    "HISTORY_HUMID_1": 38.81,
+    "HISTORY_TEMP_1": 21.3,
+    "HUMID_01": 42.44
+  },
+  {
+    "time": "02-21 06:00",
+    "HUM_01": 40.03,
+    "TEMP_01": 20.16,
+    "HISTORY_HUMID_1": 40.05,
+    "HISTORY_TEMP_1": 21.72,
+    "HUMID_01": 43.36
+  },
+  {
+    "time": "02-21 07:00",
+    "HISTORY_HUMID_1": 41.3,
+    "HISTORY_TEMP_1": 22.08,
+    "HUMID_01": 44.16,
+    "HUM_01": 41.3,
+    "TEMP_01": 20.59
+  },
+  {
+    "time": "02-21 08:00",
+    "HISTORY_HUMID_1": 42.5,
+    "HISTORY_TEMP_1": 22.51,
+    "HUMID_01": 44.98,
+    "HUM_01": 42.45,
+    "TEMP_01": 21.0
+  },
+  {
+    "time": "02-21 09:00",
+    "HISTORY_HUMID_1": 43.79,
+    "HISTORY_TEMP_1": 22.88,
+    "HUMID_01": 45.81,
+    "HUM_01": 43.76,
+    "TEMP_01": 21.42
+  },
+  {
+    "time": "02-21 10:00",
+    "TEMP_01": 21.81,
+    "HISTORY_HUMID_1": 45.06,
+    "HISTORY_TEMP_1": 23.32,
+    "HUMID_01": 46.64,
+    "HUM_01": 44.99
+  },
+  {
+    "time": "02-21 11:00",
+    "HUM_01": 46.22,
+    "TEMP_01": 22.26,
+    "HISTORY_HUMID_1": 46.29,
+    "HISTORY_TEMP_1": 23.71,
+    "HUMID_01": 47.54
+  },
+  {
+    "time": "02-21 12:00",
+    "HISTORY_TEMP_1": 24.16,
+    "HUMID_01": 48.35,
+    "HUM_01": 47.49,
+    "TEMP_01": 22.69,
+    "HISTORY_HUMID_1": 47.54
+  },
+  {
+    "time": "02-21 13:00",
+    "HISTORY_HUMID_1": 48.74,
+    "HISTORY_TEMP_1": 24.6,
+    "HUMID_01": 49.14,
+    "HUM_01": 48.77,
+    "TEMP_01": 23.08
+  },
+  {
+    "time": "02-21 14:00",
+    "HISTORY_HUMID_1": 49.91,
+    "HISTORY_TEMP_1": 24.99,
+    "HUMID_01": 50.03,
+    "HUM_01": 50.01,
+    "TEMP_01": 23.51
+  },
+  {
+    "time": "02-21 15:00",
+    "TEMP_01": 23.91,
+    "HISTORY_HUMID_1": 51.22,
+    "HISTORY_TEMP_1": 25.42,
+    "HUMID_01": 50.79,
+    "HUM_01": 51.25
+  },
+  {
+    "time": "02-21 16:00",
+    "HUM_01": 52.49,
+    "TEMP_01": 24.35,
+    "HISTORY_HUMID_1": 52.48,
+    "HISTORY_TEMP_1": 25.83,
+    "HUMID_01": 51.69
+  },
+  {
+    "time": "02-21 17:00",
+    "HISTORY_TEMP_1": 26.24,
+    "HUMID_01": 52.48,
+    "HUM_01": 53.74,
+    "TEMP_01": 24.74,
+    "HISTORY_HUMID_1": 53.74
+  },
+  {
+    "time": "02-21 18:00",
+    "HISTORY_HUMID_1": 54.93,
+    "HISTORY_TEMP_1": 26.62,
+    "HUMID_01": 53.34,
+    "HUM_01": 55.02,
+    "TEMP_01": 25.17
+  },
+  {
+    "time": "02-21 19:00",
+    "HISTORY_HUMID_1": 56.22,
+    "HISTORY_TEMP_1": 27.07,
+    "HUMID_01": 54.16,
+    "HUM_01": 56.25,
+    "TEMP_01": 25.61
+  },
+  {
+    "time": "02-21 20:00",
+    "HISTORY_HUMID_1": 57.39,
+    "HISTORY_TEMP_1": 27.47,
+    "HUMID_01": 55.0,
+    "HUM_01": 57.5,
+    "TEMP_01": 25.99
+  },
+  {
+    "time": "02-21 21:00",
+    "HUM_01": 58.77,
+    "TEMP_01": 26.42,
+    "HISTORY_HUMID_1": 58.76,
+    "HISTORY_TEMP_1": 27.89,
+    "HUMID_01": 55.82
+  },
+  {
+    "time": "02-21 22:00",
+    "HUM_01": 60.01,
+    "TEMP_01": 26.84,
+    "HISTORY_HUMID_1": 59.92,
+    "HISTORY_TEMP_1": 28.32,
+    "HUMID_01": 56.7
+  },
+  {
+    "time": "02-21 23:00",
+    "HISTORY_HUMID_1": 61.17,
+    "HISTORY_TEMP_1": 28.68,
+    "HUMID_01": 57.57,
+    "HUM_01": 61.27,
+    "TEMP_01": 27.28
+  },
+  {
+    "time": "02-22 00:00",
+    "HISTORY_HUMID_1": 32.6,
+    "HISTORY_TEMP_1": 19.17,
+    "HUMID_01": 38.32,
+    "HUM_01": 32.52,
+    "TEMP_01": 17.64
+  },
+  {
+    "time": "02-22 01:00",
+    "HISTORY_HUMID_1": 33.86,
+    "HISTORY_TEMP_1": 19.59,
+    "HUMID_01": 39.16,
+    "HUM_01": 33.8,
+    "TEMP_01": 18.07
+  },
+  {
+    "time": "02-22 02:00",
+    "TEMP_01": 18.47,
+    "HISTORY_HUMID_1": 35.04,
+    "HISTORY_TEMP_1": 20.01,
+    "HUMID_01": 39.99,
+    "HUM_01": 35.01
+  },
+  {
+    "time": "02-22 03:00",
+    "HUM_01": 36.25,
+    "TEMP_01": 18.91,
+    "HISTORY_HUMID_1": 36.36,
+    "HISTORY_TEMP_1": 20.4,
+    "HUMID_01": 40.82
+  },
+  {
+    "time": "02-22 04:00",
+    "HISTORY_TEMP_1": 20.86,
+    "HUMID_01": 41.63,
+    "HUM_01": 37.46,
+    "TEMP_01": 19.34,
+    "HISTORY_HUMID_1": 37.6
+  },
+  {
+    "time": "02-22 05:00",
+    "HISTORY_HUMID_1": 38.86,
+    "HISTORY_TEMP_1": 21.24,
+    "HUMID_01": 42.49,
+    "HUM_01": 38.75,
+    "TEMP_01": 19.76
+  },
+  {
+    "time": "02-22 06:00",
+    "HISTORY_HUMID_1": 40.06,
+    "HISTORY_TEMP_1": 21.66,
+    "HUMID_01": 43.35,
+    "HUM_01": 39.98,
+    "TEMP_01": 20.18
+  },
+  {
+    "time": "02-22 07:00",
+    "TEMP_01": 20.61,
+    "HISTORY_HUMID_1": 41.25,
+    "HISTORY_TEMP_1": 22.11,
+    "HUMID_01": 44.11,
+    "HUM_01": 41.24
+  },
+  {
+    "time": "02-22 08:00",
+    "HUM_01": 42.49,
+    "TEMP_01": 21.0,
+    "HISTORY_HUMID_1": 42.53,
+    "HISTORY_TEMP_1": 22.52,
+    "HUMID_01": 44.98
+  },
+  {
+    "time": "02-22 09:00",
+    "HISTORY_TEMP_1": 22.88,
+    "HUMID_01": 45.87,
+    "HUM_01": 43.78,
+    "TEMP_01": 21.4,
+    "HISTORY_HUMID_1": 43.86
+  },
+  {
+    "time": "02-22 10:00",
+    "HISTORY_HUMID_1": 45.06,
+    "HISTORY_TEMP_1": 23.31,
+    "HUMID_01": 46.64,
+    "HUM_01": 44.95,
+    "TEMP_01": 21.81
+  },
+  {
+    "time": "02-22 11:00",
+    "HISTORY_HUMID_1": 46.27,
+    "HISTORY_TEMP_1": 23.75,
+    "HUMID_01": 47.51,
+    "HUM_01": 46.23,
+    "TEMP_01": 22.28
+  },
+  {
+    "time": "02-22 12:00",
+    "HISTORY_HUMID_1": 47.5,
+    "HISTORY_TEMP_1": 24.12,
+    "HUMID_01": 48.29,
+    "HUM_01": 47.5,
+    "TEMP_01": 22.65
+  },
+  {
+    "time": "02-22 13:00",
+    "HUM_01": 48.79,
+    "TEMP_01": 23.09,
+    "HISTORY_HUMID_1": 48.76,
+    "HISTORY_TEMP_1": 24.59,
+    "HUMID_01": 49.22
+  },
+  {
+    "time": "02-22 14:00",
+    "HUM_01": 49.98,
+    "TEMP_01": 23.53,
+    "HISTORY_HUMID_1": 49.98,
+    "HISTORY_TEMP_1": 25.0,
+    "HUMID_01": 50.04
+  },
+  {
+    "time": "02-22 15:00",
+    "HISTORY_HUMID_1": 51.23,
+    "HISTORY_TEMP_1": 25.39,
+    "HUMID_01": 50.85,
+    "HUM_01": 51.25,
+    "TEMP_01": 23.92
+  },
+  {
+    "time": "02-22 16:00",
+    "HISTORY_HUMID_1": 52.54,
+    "HISTORY_TEMP_1": 25.84,
+    "HUMID_01": 51.66,
+    "HUM_01": 52.5,
+    "TEMP_01": 24.31
+  },
+  {
+    "time": "02-22 17:00",
+    "HISTORY_HUMID_1": 53.73,
+    "HISTORY_TEMP_1": 26.25,
+    "HUMID_01": 52.52,
+    "HUM_01": 53.77,
+    "TEMP_01": 24.73
+  },
+  {
+    "time": "02-22 18:00",
+    "TEMP_01": 25.18,
+    "HISTORY_HUMID_1": 54.96,
+    "HISTORY_TEMP_1": 26.64,
+    "HUMID_01": 53.31,
+    "HUM_01": 54.99
+  },
+  {
+    "time": "02-22 19:00",
+    "HUM_01": 56.24,
+    "TEMP_01": 25.58,
+    "HISTORY_HUMID_1": 56.23,
+    "HISTORY_TEMP_1": 27.1,
+    "HUMID_01": 54.17
+  },
+  {
+    "time": "02-22 20:00",
+    "HISTORY_TEMP_1": 27.49,
+    "HUMID_01": 54.98,
+    "HUM_01": 57.48,
+    "TEMP_01": 26.02,
+    "HISTORY_HUMID_1": 57.43
+  },
+  {
+    "time": "02-22 21:00",
+    "HISTORY_HUMID_1": 58.69,
+    "HISTORY_TEMP_1": 27.96,
+    "HUMID_01": 55.89,
+    "HUM_01": 58.71,
+    "TEMP_01": 26.42
+  },
+  {
+    "time": "02-22 22:00",
+    "HISTORY_HUMID_1": 59.93,
+    "HISTORY_TEMP_1": 28.35,
+    "HUMID_01": 56.68,
+    "HUM_01": 60.0,
+    "TEMP_01": 26.84
+  },
+  {
+    "time": "02-22 23:00",
+    "TEMP_01": 27.25,
+    "HISTORY_HUMID_1": 61.19,
+    "HISTORY_TEMP_1": 28.75,
+    "HUMID_01": 57.41,
+    "HUM_01": 61.25
+  },
+  {
+    "time": "02-23 00:00",
+    "HUM_01": 32.49,
+    "TEMP_01": 17.63,
+    "HISTORY_HUMID_1": 32.66,
+    "HISTORY_TEMP_1": 19.17,
+    "HUMID_01": 38.33
+  },
+  {
+    "time": "02-23 01:00",
+    "HISTORY_TEMP_1": 19.59,
+    "HUMID_01": 39.19,
+    "HUM_01": 33.76,
+    "TEMP_01": 18.08,
+    "HISTORY_HUMID_1": 33.84
+  },
+  {
+    "time": "02-23 02:00",
+    "HISTORY_HUMID_1": 35.1,
+    "HISTORY_TEMP_1": 20.05,
+    "HUMID_01": 39.99,
+    "HUM_01": 35.01,
+    "TEMP_01": 18.48
+  },
+  {
+    "time": "02-23 03:00",
+    "HISTORY_HUMID_1": 36.32,
+    "HISTORY_TEMP_1": 20.4,
+    "HUMID_01": 40.78,
+    "HUM_01": 36.24,
+    "TEMP_01": 18.94
+  },
+  {
+    "time": "02-23 04:00",
+    "HISTORY_HUMID_1": 37.57,
+    "HISTORY_TEMP_1": 20.84,
+    "HUMID_01": 41.65,
+    "HUM_01": 37.53,
+    "TEMP_01": 19.35
+  },
+  {
+    "time": "02-23 05:00",
+    "HUM_01": 38.77,
+    "TEMP_01": 19.77,
+    "HISTORY_HUMID_1": 38.84,
+    "HISTORY_TEMP_1": 21.2,
+    "HUMID_01": 42.55
+  },
+  {
+    "time": "02-23 06:00",
+    "HUM_01": 39.99,
+    "TEMP_01": 20.15,
+    "HISTORY_HUMID_1": 40.05,
+    "HISTORY_TEMP_1": 21.67,
+    "HUMID_01": 43.33
+  },
+  {
+    "time": "02-23 07:00",
+    "HISTORY_HUMID_1": 41.3,
+    "HISTORY_TEMP_1": 22.16,
+    "HUMID_01": 44.21,
+    "HUM_01": 41.28,
+    "TEMP_01": 20.56
+  },
+  {
+    "time": "02-23 08:00",
+    "HISTORY_HUMID_1": 42.53,
+    "HISTORY_TEMP_1": 22.53,
+    "HUMID_01": 44.97,
+    "HUM_01": 42.5,
+    "TEMP_01": 21.01
+  },
+  {
+    "time": "02-23 09:00",
+    "HISTORY_HUMID_1": 43.77,
+    "HISTORY_TEMP_1": 22.95,
+    "HUMID_01": 45.86,
+    "HUM_01": 43.71,
+    "TEMP_01": 21.44
+  },
+  {
+    "time": "02-23 10:00",
+    "TEMP_01": 21.84,
+    "HISTORY_HUMID_1": 45.07,
+    "HISTORY_TEMP_1": 23.34,
+    "HUMID_01": 46.66,
+    "HUM_01": 45.0
+  },
+  {
+    "time": "02-23 11:00",
+    "HUM_01": 46.25,
+    "TEMP_01": 22.27,
+    "HISTORY_HUMID_1": 46.31,
+    "HISTORY_TEMP_1": 23.8,
+    "HUMID_01": 47.6
+  },
+  {
+    "time": "02-23 12:00",
+    "HISTORY_TEMP_1": 24.15,
+    "HUMID_01": 48.29,
+    "HUM_01": 47.5,
+    "TEMP_01": 22.68,
+    "HISTORY_HUMID_1": 47.45
+  },
+  {
+    "time": "02-23 13:00",
+    "HISTORY_HUMID_1": 48.74,
+    "HISTORY_TEMP_1": 24.57,
+    "HUMID_01": 49.19,
+    "HUM_01": 48.73,
+    "TEMP_01": 23.07
+  },
+  {
+    "time": "02-23 14:00",
+    "HISTORY_HUMID_1": 50.0,
+    "HISTORY_TEMP_1": 24.93,
+    "HUMID_01": 49.97,
+    "HUM_01": 50.02,
+    "TEMP_01": 23.49
+  },
+  {
+    "time": "02-23 15:00",
+    "TEMP_01": 23.91,
+    "HISTORY_HUMID_1": 51.24,
+    "HISTORY_TEMP_1": 25.44,
+    "HUMID_01": 50.84,
+    "HUM_01": 51.26
+  },
+  {
+    "time": "02-23 16:00",
+    "HUM_01": 52.46,
+    "TEMP_01": 24.32,
+    "HISTORY_HUMID_1": 52.47,
+    "HISTORY_TEMP_1": 25.9,
+    "HUMID_01": 51.67
+  },
+  {
+    "time": "02-23 17:00",
+    "HUMID_01": 52.51,
+    "HUM_01": 53.78,
+    "TEMP_01": 24.76,
+    "HISTORY_HUMID_1": 53.78,
+    "HISTORY_TEMP_1": 26.28
+  },
+  {
+    "time": "02-23 18:00",
+    "HISTORY_TEMP_1": 26.7,
+    "HUMID_01": 53.35,
+    "HUM_01": 54.95,
+    "TEMP_01": 25.19,
+    "HISTORY_HUMID_1": 55.04
+  },
+  {
+    "time": "02-23 19:00",
+    "HISTORY_HUMID_1": 56.23,
+    "HISTORY_TEMP_1": 27.08,
+    "HUMID_01": 54.21,
+    "HUM_01": 56.22,
+    "TEMP_01": 25.6
+  },
+  {
+    "time": "02-23 20:00",
+    "HISTORY_HUMID_1": 57.46,
+    "HISTORY_TEMP_1": 27.53,
+    "HUMID_01": 54.99,
+    "HUM_01": 57.52,
+    "TEMP_01": 25.99
+  },
+  {
+    "time": "02-23 21:00",
+    "HUM_01": 58.76,
+    "TEMP_01": 26.41,
+    "HISTORY_HUMID_1": 58.73,
+    "HISTORY_TEMP_1": 27.94,
+    "HUMID_01": 55.85
+  },
+  {
+    "time": "02-23 22:00",
+    "HUM_01": 60.01,
+    "TEMP_01": 26.83,
+    "HISTORY_HUMID_1": 59.95,
+    "HISTORY_TEMP_1": 28.27,
+    "HUMID_01": 56.67
+  },
+  {
+    "time": "02-23 23:00",
+    "HISTORY_TEMP_1": 28.76,
+    "HUMID_01": 57.49,
+    "HUM_01": 61.27,
+    "TEMP_01": 27.26,
+    "HISTORY_HUMID_1": 61.21
+  },
+  {
+    "time": "02-24 00:00",
+    "HISTORY_HUMID_1": 32.49,
+    "HUMID_01": 38.38,
+    "HISTORY_TEMP_1": 19.14,
+    "HUM_01": 32.51,
+    "TEMP_01": 17.84
+  },
+  {
+    "time": "02-24 01:00",
+    "HISTORY_HUMID_1": 33.75,
+    "HUMID_01": 39.14,
+    "HISTORY_TEMP_1": 19.57,
+    "HUM_01": 33.76,
+    "TEMP_01": 18.35
+  },
+  {
+    "time": "02-24 02:00",
+    "HISTORY_HUMID_1": 35.03,
+    "TEMP_01": 18.46,
+    "HISTORY_TEMP_1": 19.99,
+    "HUMID_01": 40.02,
+    "HUM_01": 35.04
+  },
+  {
+    "time": "02-24 03:00",
+    "HUM_01": 36.27,
+    "HISTORY_HUMID_1": 36.16,
+    "TEMP_01": 18.69,
+    "HISTORY_TEMP_1": 20.56,
+    "HUMID_01": 40.78
+  }
+]

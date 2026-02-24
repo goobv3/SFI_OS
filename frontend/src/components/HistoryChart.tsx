@@ -27,7 +27,7 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
     // Time ranges passed to the backend
     const [appliedStart, setAppliedStart] = useState(formatLocal(defaultStart));
     const [appliedEnd, setAppliedEnd] = useState(formatLocal(defaultEnd));
-    const [activePreset, setActivePreset] = useState<string>('3h');
+    const [activePreset, setActivePreset] = useState<string>('3시간');
 
     // Display Toggles
     const [displayMode, setDisplayMode] = useState<'single' | 'both'>('single');
@@ -93,8 +93,8 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
-            <div className="bg-cyber-surface border border-cyber-border/50 rounded-xl max-w-5xl w-full p-6 relative shadow-2xl flex flex-col max-h-[90vh]">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+            <div className="bg-[#1a1c23] border border-gray-700 rounded-xl max-w-5xl w-full p-6 relative shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto overflow-x-hidden">
+                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-50 bg-[#1a1c23]/80 p-1 rounded-full">
                     <X className="w-6 h-6" />
                 </button>
 
@@ -182,17 +182,19 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
                     {/* Presets */}
                     <div className="flex items-center gap-2 border-l border-gray-700 pl-4">
                         {[
-                            { label: '3h', hours: 3 },
-                            { label: '24h', hours: 24 },
-                            { label: '7d', hours: 24 * 7 },
-                            { label: '30d', hours: 24 * 30 }
+                            { label: '3시간', hours: 3 },
+                            { label: '12시간', hours: 12 },
+                            { label: '24시간', hours: 24 },
+                            { label: '7일', hours: 24 * 7 },
+                            { label: '1개월', hours: 24 * 30 },
+                            { label: '1년', hours: 24 * 365 }
                         ].map(p => (
                             <button
                                 key={p.label}
                                 onClick={() => handlePreset(p.hours, p.label)}
-                                className={`px-3 py-1 rounded text-xs font-medium transition-colors border ${activePreset === p.label
-                                    ? 'bg-neon-purple/20 border-neon-purple text-neon-purple'
-                                    : 'bg-transparent border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500'
+                                className={`relative px-3 py-1 rounded text-xs font-medium transition-all duration-300 border ${activePreset === p.label
+                                    ? 'bg-neon-purple/20 border-neon-purple text-neon-purple shadow-[0_0_10px_rgba(157,78,221,0.5)]'
+                                    : 'bg-transparent border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 hover:shadow-[0_0_8px_rgba(255,255,255,0.1)]'
                                     }`}
                             >
                                 {p.label}
@@ -202,62 +204,76 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
                 </div>
 
                 {/* Chart Area */}
-                <div className="flex-1 w-full min-h-[300px]">
+                <div className="flex-1 w-full flex flex-col items-center justify-center p-2 rounded-lg min-h-[400px]">
                     {loading ? (
                         <div className="w-full h-full flex flex-col items-center justify-center gap-4">
                             <div className="w-8 h-8 border-2 border-neon-blue border-t-transparent rounded-full animate-spin"></div>
                             <div className="text-neon-blue animate-pulse text-sm">Loading telemetry...</div>
                         </div>
                     ) : data.length === 0 ? (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500">No data available for this range.</div>
+                        <div className="w-full h-[350px] flex items-center justify-center text-gray-500">No data available for this range.</div>
                     ) : (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data} margin={{ top: 5, right: 20, bottom: 25, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#2a2c33" vertical={false} />
-                                <XAxis
-                                    dataKey="time"
-                                    stroke="#888"
-                                    tick={{ fill: '#888', fontSize: 11 }}
-                                    dy={10}
-                                    minTickGap={30}
-                                />
-                                <YAxis
-                                    stroke="#888"
-                                    tick={{ fill: '#888', fontSize: 11 }}
-                                    domain={['auto', 'auto']}
-                                />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'rgba(26, 28, 35, 0.95)', border: '1px solid #45a29e', borderRadius: '8px', color: '#fff', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)' }}
-                                    itemStyle={{ color: '#fff' }}
-                                />
-                                <Legend verticalAlign="top" height={36} />
-
-                                {displayMode === 'single' ? (
-                                    <Line
-                                        type="monotone"
-                                        dataKey={initialSensorId}
-                                        name={initialSensor?.name}
-                                        stroke="#66fcf1"
-                                        strokeWidth={2}
-                                        dot={false}
-                                        activeDot={{ r: 6, fill: '#66fcf1', stroke: '#fff', strokeWidth: 2 }}
+                        <div className="w-full relative h-[400px] pb-5">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={data} margin={{ top: 20, right: 40, bottom: 40, left: 20 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2c33" vertical={false} />
+                                    <XAxis
+                                        dataKey="time"
+                                        stroke="#888"
+                                        tick={{ fill: '#888', fontSize: 11 }}
+                                        dy={10}
+                                        minTickGap={30}
                                     />
-                                ) : (
-                                    sensors.map((sensor, idx) => (
+                                    <YAxis
+                                        yAxisId="left"
+                                        stroke="#888"
+                                        tick={{ fill: '#888', fontSize: 11 }}
+                                        domain={['auto', 'auto']}
+                                    />
+                                    {displayMode === 'both' && (
+                                        <YAxis
+                                            yAxisId="right"
+                                            orientation="right"
+                                            stroke="#888"
+                                            tick={{ fill: '#888', fontSize: 11 }}
+                                            domain={['auto', 'auto']}
+                                        />
+                                    )}
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: 'rgba(26, 28, 35, 0.95)', border: '1px solid #45a29e', borderRadius: '8px', color: '#fff', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)' }}
+                                        itemStyle={{ color: '#fff' }}
+                                    />
+                                    <Legend verticalAlign="top" height={36} />
+
+                                    {displayMode === 'single' ? (
                                         <Line
-                                            key={sensor.id}
+                                            yAxisId="left"
                                             type="monotone"
-                                            dataKey={sensor.id}
-                                            name={sensor.name}
-                                            stroke={getLineColor(idx, sensor.type)}
+                                            dataKey={initialSensorId}
+                                            name={initialSensor?.name}
+                                            stroke="#66fcf1"
                                             strokeWidth={2}
                                             dot={false}
-                                            activeDot={{ r: 4, fill: getLineColor(idx, sensor.type), stroke: '#fff', strokeWidth: 2 }}
+                                            activeDot={{ r: 6, fill: '#66fcf1', stroke: '#fff', strokeWidth: 2 }}
                                         />
-                                    ))
-                                )}
-                            </LineChart>
-                        </ResponsiveContainer>
+                                    ) : (
+                                        sensors.map((sensor, idx) => (
+                                            <Line
+                                                key={sensor.id}
+                                                yAxisId={sensor.type.includes('hum') ? 'right' : 'left'}
+                                                type="monotone"
+                                                dataKey={sensor.id}
+                                                name={sensor.name}
+                                                stroke={getLineColor(idx, sensor.type)}
+                                                strokeWidth={2}
+                                                dot={false}
+                                                activeDot={{ r: 4, fill: getLineColor(idx, sensor.type), stroke: '#fff', strokeWidth: 2 }}
+                                            />
+                                        ))
+                                    )}
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
                     )}
                 </div>
             </div>

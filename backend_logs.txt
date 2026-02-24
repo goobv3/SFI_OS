@@ -1,0 +1,73 @@
+sf_backend  | INFO:     Started server process [1]
+sf_backend  | INFO:     Waiting for application startup.
+sf_backend  | INFO:     Application startup complete.
+sf_backend  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+sf_backend  | INFO:     172.18.0.1:41866 - "GET /api/sensors/history_range?sensor_ids=TEMP_1&start_time=2026-02-23T15:00:00Z&end_time=2026-02-23T18:00:00Z HTTP/1.1" 500 Internal Server Error
+sf_backend  | ERROR:    Exception in ASGI application
+sf_backend  | Traceback (most recent call last):
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+sf_backend  |     result = await app(  # type: ignore[func-returns-value]
+sf_backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+sf_backend  |     return await self.app(scope, receive, send)
+sf_backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1134, in __call__
+sf_backend  |     await super().__call__(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 107, in __call__
+sf_backend  |     await self.middleware_stack(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+sf_backend  |     raise exc
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+sf_backend  |     await self.app(scope, receive, _send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 87, in __call__
+sf_backend  |     await self.app(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+sf_backend  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+sf_backend  |     raise exc
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+sf_backend  |     await app(scope, receive, sender)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+sf_backend  |     await self.app(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+sf_backend  |     await self.middleware_stack(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+sf_backend  |     await route.handle(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+sf_backend  |     await self.app(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 119, in app
+sf_backend  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+sf_backend  |     raise exc
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+sf_backend  |     await app(scope, receive, sender)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 105, in app
+sf_backend  |     response = await f(request)
+sf_backend  |                ^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 425, in app
+sf_backend  |     raw_response = await run_endpoint_function(
+sf_backend  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 315, in run_endpoint_function
+sf_backend  |     return await run_in_threadpool(dependant.call, **values)
+sf_backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+sf_backend  |     return await anyio.to_thread.run_sync(func)
+sf_backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/anyio/to_thread.py", line 63, in run_sync
+sf_backend  |     return await get_async_backend().run_sync_in_worker_thread(
+sf_backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+sf_backend  |     return await future
+sf_backend  |            ^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+sf_backend  |     result = context.run(func, *args)
+sf_backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/app/main.py", line 337, in get_sensor_history_range
+sf_backend  |     cursor.execute(query, params)
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 151, in execute
+sf_backend  |     query = self.mogrify(query, args)
+sf_backend  |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+sf_backend  |   File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 129, in mogrify
+sf_backend  |     query = query % self._escape_args(args, conn)
+sf_backend  |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sf_backend  | ValueError: unsupported format character 'H' (0x48) at index 54

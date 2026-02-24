@@ -15,12 +15,12 @@ export const smartFarmApi = {
         const response = await apiClient.get('/houses');
         return response.data; // [{ house_id, name, created_at }, ...]
     },
-    createHouse: async (houseId: string, name: string) => {
-        const response = await apiClient.post('/houses', { house_id: houseId, name });
+    createHouse: async (houseId: string, name: string, displayOrder: number = 0) => {
+        const response = await apiClient.post('/houses', { house_id: houseId, name, display_order: displayOrder });
         return response.data;
     },
-    updateHouse: async (houseId: string, name: string) => {
-        const response = await apiClient.put(`/houses/${houseId}`, { name });
+    updateHouse: async (houseId: string, name: string, displayOrder: number = 0) => {
+        const response = await apiClient.put(`/houses/${houseId}`, { name, display_order: displayOrder });
         return response.data;
     },
     deleteHouse: async (houseId: string) => {
@@ -33,11 +33,11 @@ export const smartFarmApi = {
         const response = await apiClient.get(`/houses/${houseId}/devices`);
         return response.data; // { sensors: [], actuators: [] }
     },
-    createSensor: async (payload: { sensor_id: string, house_id: string, alias: string, type: string, unit: string }) => {
+    createSensor: async (payload: { sensor_id: string, house_id: string, alias: string, type: string, unit: string, display_order?: number }) => {
         const response = await apiClient.post('/metadata/sensors', payload);
         return response.data;
     },
-    updateSensor: async (sensorId: string, payload: { alias: string, type: string, unit: string }) => {
+    updateSensor: async (sensorId: string, payload: { alias: string, type: string, unit: string, display_order?: number, is_active?: boolean, warn_high?: number | null, warn_low?: number | null, crit_high?: number | null, crit_low?: number | null }) => {
         const response = await apiClient.put(`/metadata/sensors/${sensorId}`, payload);
         return response.data;
     },
@@ -83,6 +83,16 @@ export const smartFarmApi = {
     getSensorHistoryByRange: async (sensorIds: string[], startTime: string, endTime: string) => {
         const ids = sensorIds.join(',');
         const response = await apiClient.get(`/sensors/history_range?sensor_ids=${ids}&start_time=${startTime}&end_time=${endTime}`);
+        return response.data;
+    },
+
+    // Alarms
+    getAlarms: async () => {
+        const response = await apiClient.get('/alarms');
+        return response.data; // [{id, sensor_id, level, message, is_acknowledged, created_at, ...}]
+    },
+    acknowledgeAlarm: async (alarmId: number) => {
+        const response = await apiClient.post(`/alarms/${alarmId}/acknowledge`);
         return response.data;
     },
 

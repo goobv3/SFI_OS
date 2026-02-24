@@ -1,18 +1,24 @@
-import { Thermometer, Droplets, Sun, Wind, Activity } from 'lucide-react';
+import { Thermometer, Droplets, Sun, Wind, Activity, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { smartFarmApi } from '../api/client';
 import HistoryChart from './HistoryChart';
+import SensorGauge from './SensorGauge';
+import SensorConfigModal from './SensorConfigModal';
 
 interface SensorDashboardProps {
     houseId: string;
+    refreshTrigger?: number;
 }
 
-export default function SensorDashboard({ houseId }: SensorDashboardProps) {
+export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashboardProps) {
     const [sensors, setSensors] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     // History Modal State
     const [activeSensorHistory, setActiveSensorHistory] = useState<{ id: string, name: string } | null>(null);
+
+    // Config Modal State
+    const [activeConfigSensor, setActiveConfigSensor] = useState<any | null>(null);
 
     const fetchSensors = async () => {
         setLoading(true);
@@ -36,7 +42,7 @@ export default function SensorDashboard({ houseId }: SensorDashboardProps) {
 
     useEffect(() => {
         if (houseId) fetchSensors();
-    }, [houseId]);
+    }, [houseId, refreshTrigger]);
 
     const getIconAndColor = (type: string) => {
         const t = type.toLowerCase();
@@ -54,7 +60,7 @@ export default function SensorDashboard({ houseId }: SensorDashboardProps) {
         <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {sensors.map((sensor) => {
-                    const { icon: IconNode, color, glow } = getIconAndColor(sensor.type);
+                    const { icon: IconNode, color } = getIconAndColor(sensor.type);
                     return (
                         <div
                             key={sensor.sensor_id}
@@ -63,17 +69,47 @@ export default function SensorDashboard({ houseId }: SensorDashboardProps) {
                         >
                             <div className={`absolute -inset-4 bg-gradient-to-r from-transparent via-${color.replace('text-', '')}/5 to-transparent opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500`} />
 
-                            <div className="z-10 flex flex-col items-center text-center w-full">
-                                <div className="flex w-full justify-between items-start mb-4">
-                                    <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase">{sensor.alias}</span>
-                                    <IconNode className={`w-5 h-5 ${color}`} />
+                            {!sensor.is_active && (
+                                <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center backdrop-blur-[1px] pointer-events-none">
+                                    <button
+                                        className="text-red-500 font-bold border border-red-500/50 bg-red-500/10 px-3 py-1 rounded text-sm tracking-widest uppercase pointer-events-auto hover:bg-red-500/20 hover:scale-105 transition-all"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setActiveConfigSensor(sensor);
+                                        }}
+                                    >
+                                        Paused
+                                    </button>
                                 </div>
+                            )}
 
-                                <div className="flex items-baseline gap-1 mt-2">
-                                    <span className={`text-3xl font-bold tracking-tight text-white ${glow}`}>
-                                        {sensor.value.toFixed(1)}
-                                    </span>
-                                    <span className="text-sm font-medium text-gray-400">{sensor.unit}</span>
+                            <div className={`z-10 flex flex-col items-center w-full ${!sensor.is_active ? 'opacity-30' : ''}`}>
+                                <div className="flex w-full justify-between items-center mb-1">
+                                    <IconNode className={`w-5 h-5 ${color}`} />
+                                    <button
+                                        className="p-1 hover:bg-white/10 rounded transition-colors text-gray-500 hover:text-white"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setActiveConfigSensor(sensor);
+                                        }}
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="relative w-full">
+                                    <SensorGauge
+                                        value={sensor.value}
+                                        unit={sensor.unit}
+                                        title={sensor.alias}
+                                        warnLow={sensor.warn_low}
+                                        warnHigh={sensor.warn_high}
+                                        critLow={sensor.crit_low}
+                                        critHigh={sensor.crit_high}
+                                        min={sensor.type.includes('temp') ? -10 : 0}
+                                        max={sensor.type.includes('temp') ? 50 : 100}
+                                    />
+                                    {/* Overlay block to catch clicks on gauge when paused to prevent opening history */}
+                                    {!sensor.is_active && <div className="absolute inset-0 z-30 pointer-events-none" />}
                                 </div>
                             </div>
                         </div>
@@ -86,6 +122,17 @@ export default function SensorDashboard({ houseId }: SensorDashboardProps) {
                     sensors={sensors.map(s => ({ id: s.sensor_id, name: s.alias, type: s.type }))}
                     initialSensorId={activeSensorHistory.id}
                     onClose={() => setActiveSensorHistory(null)}
+                />
+            )}
+
+            {activeConfigSensor && (
+                <SensorConfigModal
+                    sensor={activeConfigSensor}
+                    onClose={() => setActiveConfigSensor(null)}
+                    onSave={() => {
+                        setActiveConfigSensor(null);
+                        fetchSensors(); // Reload the thresholds and orders
+                    }}
                 />
             )}
         </>

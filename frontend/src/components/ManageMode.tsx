@@ -14,6 +14,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
 
     const [editingHouseId, setEditingHouseId] = useState('');
     const [editHouseName, setEditHouseName] = useState('');
+    const [editHouseOrder, setEditHouseOrder] = useState<number | string>(0);
 
     const [selectedHouseId, setSelectedHouseId] = useState<string>('');
     const [houseDevices, setHouseDevices] = useState<{ sensors: any[], actuators: any[] }>({ sensors: [], actuators: [] });
@@ -37,6 +38,117 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
 
     const [editingActuatorId, setEditingActuatorId] = useState('');
     const [editActuatorForm, setEditActuatorForm] = useState({ alias: '', type: '' });
+
+    // Drag and Drop State
+    const [draggedHouseIndex, setDraggedHouseIndex] = useState<number | null>(null);
+    const [dragOverHouseIndex, setDragOverHouseIndex] = useState<number | null>(null);
+
+    const [draggedSensorIndex, setDraggedSensorIndex] = useState<number | null>(null);
+    const [dragOverSensorIndex, setDragOverSensorIndex] = useState<number | null>(null);
+
+    // Dirty State (Unsaved Changes)
+    const [isDirty, setIsDirty] = useState(false);
+
+    // House Drag & Drop Handlers
+    const onHouseDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedHouseIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index.toString());
+    };
+
+    const onHouseDragEnter = (index: number) => {
+        setDragOverHouseIndex(index);
+    };
+
+    const onHouseDragEnd = async () => {
+        if (draggedHouseIndex === null || dragOverHouseIndex === null || draggedHouseIndex === dragOverHouseIndex) {
+            setDraggedHouseIndex(null);
+            setDragOverHouseIndex(null);
+            return;
+        }
+
+        const newHouses = [...houses];
+        const draggedItem = newHouses.splice(draggedHouseIndex, 1)[0];
+        newHouses.splice(dragOverHouseIndex, 0, draggedItem);
+
+        setHouses(newHouses);
+        setDraggedHouseIndex(null);
+        setDragOverHouseIndex(null);
+        setIsDirty(true);
+    };
+
+    // Sensor Drag & Drop Handlers
+    const onSensorDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedSensorIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index.toString());
+    };
+
+    const onSensorDragEnter = (index: number) => {
+        setDragOverSensorIndex(index);
+    };
+
+    const onSensorDragEnd = async () => {
+        if (draggedSensorIndex === null || dragOverSensorIndex === null || draggedSensorIndex === dragOverSensorIndex) {
+            setDraggedSensorIndex(null);
+            setDragOverSensorIndex(null);
+            return;
+        }
+
+        const newSensors = [...houseDevices.sensors];
+        const draggedItem = newSensors.splice(draggedSensorIndex, 1)[0];
+        newSensors.splice(dragOverSensorIndex, 0, draggedItem);
+
+        setHouseDevices(prev => ({ ...prev, sensors: newSensors }));
+        setDraggedSensorIndex(null);
+        setDragOverSensorIndex(null);
+        setIsDirty(true);
+    };
+
+    const handleSaveAll = async () => {
+        try {
+            // Save Houses Order
+            await Promise.all(
+                houses.map((h, index) =>
+                    smartFarmApi.updateHouse(h.house_id, h.name, index)
+                )
+            );
+
+            // Save Sensors Order (only for the currently selected house, 
+            // but this logic supports the user's primary use-case of editing one house at a time)
+            if (houseDevices.sensors.length > 0) {
+                await Promise.all(
+                    houseDevices.sensors.map((s, index) =>
+                        smartFarmApi.updateSensor(s.sensor_id, {
+                            alias: s.alias,
+                            type: s.type,
+                            unit: s.unit,
+                            display_order: index,
+                            is_active: s.is_active,
+                            warn_high: s.warn_high,
+                            warn_low: s.warn_low,
+                            crit_high: s.crit_high,
+                            crit_low: s.crit_low
+                        })
+                    )
+                );
+            }
+
+            setIsDirty(false);
+            onUpdate(); // Re-fetch dashboard
+        } catch (e) {
+            console.error("Failed to save changes", e);
+            alert("Failed to save changes. Please try again.");
+        }
+    };
+
+    const handleCancel = () => {
+        fetchHouses();
+        if (selectedHouseId && viewMode === 'house_editor') {
+            loadDevices(selectedHouseId);
+        }
+        setIsDirty(false);
+    };
 
     const fetchHouses = async () => {
         try {
@@ -127,7 +239,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
     const handleUpdateHouse = async (houseId: string) => {
         if (!editHouseName) return;
         try {
-            await smartFarmApi.updateHouse(houseId, editHouseName);
+            await smartFarmApi.updateHouse(houseId, editHouseName, Number(editHouseOrder) || 0);
             setEditingHouseId('');
             fetchHouses();
             onUpdate();
@@ -259,12 +371,36 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 text-gray-200">
             <div className="bg-[#12141a] border border-cyber-border/40 rounded-xl max-w-6xl w-full h-[85vh] flex flex-col relative shadow-2xl overflow-hidden">
                 {/* Header */}
-                <div className="h-16 flex items-center justify-between px-6 border-b border-cyber-border/20 bg-black/40">
-                    <h2 className="text-xl font-bold text-white tracking-widest flex items-center gap-2">
-                        <Settings className="w-5 h-5 text-neon-blue" />
-                        SYSTEM CONFIGURATION
-                    </h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+                <div className="h-16 flex items-center justify-between px-6 border-b border-cyber-border/20 bg-black/40 shrink-0">
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-xl font-bold text-white tracking-widest flex items-center gap-2">
+                            <Settings className="w-5 h-5 text-neon-blue" />
+                            SYSTEM CONFIGURATION
+                        </h2>
+                        {isDirty && (
+                            <div className="flex items-center gap-2 ml-4 animate-fade-in">
+                                <span className="text-amber-400 text-sm font-semibold tracking-wide mr-2">Unsaved changes</span>
+                                <button onClick={handleCancel} className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-1.5 px-4 rounded transition">
+                                    Cancel
+                                </button>
+                                <button onClick={handleSaveAll} className="bg-neon-blue hover:bg-blue-400 text-black shadow-[0_0_10px_rgba(0,240,255,0.4)] text-sm font-bold py-1.5 px-4 rounded transition flex items-center gap-1">
+                                    <Save className="w-4 h-4" /> Save Ordering
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => {
+                            if (isDirty) {
+                                if (window.confirm("You have unsaved changes. Are you sure you want to close?")) {
+                                    onClose();
+                                }
+                            } else {
+                                onClose();
+                            }
+                        }}
+                        className="text-gray-400 hover:text-white transition-colors"
+                    >
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -315,10 +451,19 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                         {/* House List */}
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
                             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1 mb-1">Registered Houses</h3>
-                            {houses.map(h => (
+                            {houses.map((h, index) => (
                                 <div
                                     key={h.house_id}
-                                    className={`flex flex-col p-3 rounded cursor-pointer transition ${selectedHouseId === h.house_id && viewMode === 'house_editor' ? 'bg-neon-blue/10 border border-neon-blue/30 text-neon-blue' : 'hover:bg-white/5 border border-transparent text-gray-300'}`}
+                                    draggable
+                                    onDragStart={(e) => onHouseDragStart(e, index)}
+                                    onDragEnter={() => onHouseDragEnter(index)}
+                                    onDragEnd={onHouseDragEnd}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    className={`flex flex-col p-3 rounded cursor-pointer transition 
+                                        ${selectedHouseId === h.house_id && viewMode === 'house_editor' ? 'bg-neon-blue/10 border border-neon-blue/30 text-neon-blue' : 'hover:bg-white/5 border border-transparent text-gray-300'}
+                                        ${dragOverHouseIndex === index ? 'border-t-2 border-t-neon-blue border-dashed' : ''}
+                                        ${draggedHouseIndex === index ? 'opacity-50 bg-white/5' : ''}
+                                    `}
                                     onClick={() => { setSelectedHouseId(h.house_id); setViewMode('house_editor'); }}
                                 >
                                     {editingHouseId === h.house_id ? (
@@ -327,7 +472,15 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                                 autoFocus
                                                 value={editHouseName}
                                                 onChange={e => setEditHouseName(e.target.value)}
-                                                className="flex-1 bg-black border border-gray-600 rounded px-2 py-1 text-sm outline-none text-white"
+                                                className="flex-[2] bg-black border border-gray-600 rounded px-2 py-1 text-sm outline-none text-white"
+                                                placeholder="Name"
+                                            />
+                                            <input
+                                                type="number"
+                                                value={editHouseOrder}
+                                                onChange={e => setEditHouseOrder(e.target.value)}
+                                                className="flex-1 w-16 bg-black border border-gray-600 rounded px-2 py-1 text-sm outline-none text-white"
+                                                placeholder="Order"
                                             />
                                             <button onClick={() => handleUpdateHouse(h.house_id)} className="text-green-400 hover:text-green-300"><Save className="w-4 h-4" /></button>
                                             <button onClick={() => setEditingHouseId('')} className="text-gray-400 hover:text-white"><XCircle className="w-4 h-4" /></button>
@@ -338,7 +491,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                                 <Home className="w-4 h-4" /> {h.name}
                                             </div>
                                             <div className="flex gap-2">
-                                                <button onClick={(e) => { e.stopPropagation(); setEditingHouseId(h.house_id); setEditHouseName(h.name); }} className="text-gray-500 hover:text-blue-400 transition">
+                                                <button onClick={(e) => { e.stopPropagation(); setEditingHouseId(h.house_id); setEditHouseName(h.name); setEditHouseOrder(h.display_order ?? 0); }} className="text-gray-500 hover:text-blue-400 transition">
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
                                                 <button onClick={(e) => { e.stopPropagation(); handleDeleteHouse(h.house_id); }} className="text-gray-500 hover:text-red-400 transition">
@@ -492,9 +645,20 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                     </div>
 
                                     {/* Sensor List */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                        {houseDevices.sensors.map(s => (
-                                            <div key={s.sensor_id} className="bg-black/40 border border-gray-800 p-3 rounded flex flex-col gap-2 text-sm justify-between shadow-sm">
+                                    <div className="flex flex-col gap-3">
+                                        {houseDevices.sensors.map((s, index) => (
+                                            <div
+                                                key={s.sensor_id}
+                                                draggable
+                                                onDragStart={(e) => onSensorDragStart(e, index)}
+                                                onDragEnter={() => onSensorDragEnter(index)}
+                                                onDragEnd={onSensorDragEnd}
+                                                onDragOver={(e) => e.preventDefault()}
+                                                className={`bg-black/40 border border-gray-800 p-3 rounded flex flex-col gap-2 text-sm justify-between shadow-sm cursor-grab active:cursor-grabbing transition
+                                                    ${dragOverSensorIndex === index ? 'border-t-2 border-t-neon-green border-dashed' : ''}
+                                                    ${draggedSensorIndex === index ? 'opacity-50 bg-white/5' : ''}
+                                                `}
+                                            >
                                                 {editingSensorId === s.sensor_id ? (
                                                     <div className="flex flex-col gap-2">
                                                         <input value={editSensorForm.alias} onChange={e => setEditSensorForm({ ...editSensorForm, alias: e.target.value })} className="bg-black border border-gray-600 rounded px-2 py-1 text-sm outline-none" />

@@ -3,6 +3,7 @@ import HouseSelector from './components/HouseSelector';
 import SensorDashboard from './components/SensorDashboard';
 import ActuatorControl from './components/ActuatorControl';
 import ManageMode from './components/ManageMode';
+import AlarmToast from './components/AlarmToast';
 import { Activity, Settings } from 'lucide-react';
 import { smartFarmApi } from './api/client';
 
@@ -10,11 +11,13 @@ function App() {
   const [houses, setHouses] = useState<any[]>([]);
   const [selectedHouseId, setSelectedHouseId] = useState<string>('');
   const [isManageMode, setIsManageMode] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchHouses = async () => {
     try {
       const data = await smartFarmApi.getHouses();
       setHouses(data);
+      setRefreshTrigger(prev => prev + 1);
       if (data.length > 0 && !selectedHouseId) {
         setSelectedHouseId(data[0].house_id);
       } else if (data.length === 0) {
@@ -84,7 +87,7 @@ function App() {
               {/* Sensor Visualization Area */}
               <section className="bg-cyber-surface rounded-xl p-6 border border-cyber-border/20 shadow-lg">
                 <h3 className="text-lg font-semibold mb-4 text-gray-300">Environment Status (Click for History)</h3>
-                <SensorDashboard houseId={selectedHouseId} />
+                <SensorDashboard houseId={selectedHouseId} refreshTrigger={refreshTrigger} />
               </section>
 
               {/* Actuator Control Area */}
@@ -101,6 +104,9 @@ function App() {
           )}
         </div>
       </main>
+
+      {/* Alarm Notifications */}
+      <AlarmToast />
 
       {/* Settings Modal */}
       {isManageMode && (

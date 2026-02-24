@@ -27,9 +27,11 @@ rules = load_rules()
 class HouseCreate(BaseModel):
     house_id: str
     name: str
+    display_order: int = 0
 
 class HouseUpdate(BaseModel):
     name: str
+    display_order: int = 0
 
 class SensorMetadataCreate(BaseModel):
     sensor_id: str
@@ -37,6 +39,8 @@ class SensorMetadataCreate(BaseModel):
     alias: str
     type: str
     unit: str
+    display_order: int = 0
+    is_active: bool = True
 
 class ActuatorMetadataCreate(BaseModel):
     actuator_id: str
@@ -48,6 +52,12 @@ class DeviceUpdate(BaseModel):
     alias: str
     type: str
     unit: Optional[str] = None # Sensor only
+    display_order: int = 0
+    is_active: bool = True
+    warn_high: Optional[float] = None
+    warn_low: Optional[float] = None
+    crit_high: Optional[float] = None
+    crit_low: Optional[float] = None
 
 class SensorData(BaseModel):
     sensor_id: str
@@ -87,7 +97,7 @@ def read_root():
 def get_houses():
     with db_session() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT house_id, name, created_at FROM houses")
+            cursor.execute("SELECT house_id, name, display_order, created_at FROM houses ORDER BY display_order ASC")
             return cursor.fetchall()
 
 @app.post("/api/houses")
@@ -95,7 +105,7 @@ def create_house(house: HouseCreate):
     with db_session() as conn:
         with conn.cursor() as cursor:
             try:
-                cursor.execute("INSERT INTO houses (house_id, name) VALUES (%s, %s)", (house.house_id, house.name))
+                cursor.execute("INSERT INTO houses (house_id, name, display_order) VALUES (%s, %s, %s)", (house.house_id, house.name, house.display_order))
                 conn.commit()
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
@@ -114,7 +124,7 @@ def update_house(house_id: str, house_update: HouseUpdate):
     with db_session() as conn:
         with conn.cursor() as cursor:
             try:
-                cursor.execute("UPDATE houses SET name = %s WHERE house_id = %s", (house_update.name, house_id))
+                cursor.execute("UPDATE houses SET name = %s, display_order = %s WHERE house_id = %s", (house_update.name, house_update.display_order, house_id))
                 conn.commit()
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
@@ -125,7 +135,7 @@ def update_house(house_id: str, house_update: HouseUpdate):
 def get_house_devices(house_id: str):
     with db_session() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM sensor_metadata WHERE house_id = %s", (house_id,))
+            cursor.execute("SELECT * FROM sensor_metadata WHERE house_id = %s ORDER BY display_order ASC", (house_id,))
             sensors = cursor.fetchall()
             cursor.execute("""
                 SELECT am.*, ast.status, ast.target_value, ast.manual_lock 
@@ -142,9 +152,9 @@ def create_sensor_metadata(meta: SensorMetadataCreate):
         with conn.cursor() as cursor:
             try:
                 cursor.execute("""
-                    INSERT INTO sensor_metadata (sensor_id, house_id, alias, type, unit)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (meta.sensor_id, meta.house_id, meta.alias, meta.type, meta.unit))
+                    INSERT INTO sensor_metadata (sensor_id, house_id, alias, type, unit, display_order, is_active)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (meta.sensor_id, meta.house_id, meta.alias, meta.type, meta.unit, meta.display_order, meta.is_active))
                 conn.commit()
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
@@ -189,7 +199,12 @@ def update_sensor_metadata(sensor_id: str, diff: DeviceUpdate):
     with db_session() as conn:
         with conn.cursor() as cursor:
             try:
-                cursor.execute("UPDATE sensor_metadata SET alias = %s, type = %s, unit = %s WHERE sensor_id = %s", (diff.alias, diff.type, diff.unit, sensor_id))
+                cursor.execute("""
+                    UPDATE sensor_metadata 
+                    SET alias = %s, type = %s, unit = %s, display_order = %s, is_active = %s,
+                        warn_high = %s, warn_low = %s, crit_high = %s, crit_low = %s 
+                    WHERE sensor_id = %s
+                """, (diff.alias, diff.type, diff.unit, diff.display_order, diff.is_active, diff.warn_high, diff.warn_low, diff.crit_high, diff.crit_low, sensor_id))
                 conn.commit()
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
@@ -231,6 +246,14 @@ def receive_sensor_data(data: SensorData):
             
         with conn.cursor() as cursor:
             try:
+                # 0. Check if this sensor is registered and if it is active
+                cursor.execute("SELECT is_active, alias, warn_high, warn_low, crit_high, crit_low FROM sensor_metadata WHERE sensor_id = %s", (data.sensor_id,))
+                meta = cursor.fetchone()
+                
+                # If meta exists but is_active is false, skip data ingestion entirely.
+                if meta and meta.get('is_active') == 0:
+                    return {"status": "skipped", "message": "Sensor data collection is paused (is_active=0)"}
+
                 # 1. Try to insert as official sensor reading
                 cursor.execute("""
                     INSERT INTO sensors (sensor_id, value)
@@ -239,6 +262,36 @@ def receive_sensor_data(data: SensorData):
                 
                 # If succeeded, ensure it's removed from discovery inbox if it was there
                 cursor.execute("DELETE FROM unregistered_devices WHERE device_id = %s", (data.sensor_id,))
+                
+                # Check bounds and generate alarms
+                # We already fetched meta above, no need to re-query if it exists
+                
+                if meta:
+                    level = None
+                    message = ""
+                    val = data.value
+                    alias = meta['alias'] or data.sensor_id
+                    
+                    if meta['crit_high'] is not None and val >= meta['crit_high']:
+                        level = 'Critical'
+                        message = f"{alias} exceeds critical high threshold: {val}"
+                    elif meta['crit_low'] is not None and val <= meta['crit_low']:
+                        level = 'Critical'
+                        message = f"{alias} below critical low threshold: {val}"
+                    elif meta['warn_high'] is not None and val >= meta['warn_high']:
+                        level = 'Warning'
+                        message = f"{alias} exceeds warning high threshold: {val}"
+                    elif meta['warn_low'] is not None and val <= meta['warn_low']:
+                        level = 'Warning'
+                        message = f"{alias} below warning low threshold: {val}"
+                        
+                    if level:
+                        # Check if an active alarm for this sensor and level already exists
+                        cursor.execute("SELECT id FROM alarms WHERE sensor_id = %s AND level = %s AND is_acknowledged = FALSE", (data.sensor_id, level))
+                        existing_alarm = cursor.fetchone()
+                        if not existing_alarm:
+                            cursor.execute("INSERT INTO alarms (sensor_id, level, message) VALUES (%s, %s, %s)", (data.sensor_id, level, message))
+                
                 conn.commit()
             except Exception as e:
                 # 2. Foreign Key Failure (Sensor not in sensor_metadata!)
@@ -252,6 +305,22 @@ def receive_sensor_data(data: SensorData):
                 return {"status": "accepted", "message": "Unknown sensor added to Discovery Inbox"}
             
     return {"status": "success", "message": "Sensor data ingested"}
+
+# --- Alarms Management ---
+@app.get("/api/alarms")
+def get_alarms():
+    with db_session() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT a.*, s.alias FROM alarms a LEFT JOIN sensor_metadata s ON a.sensor_id = s.sensor_id WHERE a.is_acknowledged = FALSE ORDER BY a.created_at DESC")
+            return cursor.fetchall()
+
+@app.post("/api/alarms/{alarm_id}/acknowledge")
+def acknowledge_alarm(alarm_id: int):
+    with db_session() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("UPDATE alarms SET is_acknowledged = TRUE, acknowledged_at = CURRENT_TIMESTAMP WHERE id = %s", (alarm_id,))
+            conn.commit()
+    return {"status": "success"}
 
 @app.get("/api/sensors/{sensor_id}/history")
 def get_sensor_history(sensor_id: str, period: str = 'daily'):
@@ -313,20 +382,38 @@ def get_sensor_history_range(sensor_ids: str, start_time: str, end_time: str):
         raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format.")
 
     # Determine grouping format based on duration
-    if diff_hours <= 24: # Less than a day -> group by Minute or every 10 mins depending on density (we'll use minute since user requested high density for 3h)
-        date_format = '%%m-%%d %%H:%%i' if diff_hours > 3 else '%%H:%%i' 
+    # 3 hours: 1 min, 12 hours: 5 min, 24 hours: 10 min, 7 days (168h): 1 hour, 1 month (720h): 1 day, 1 year: 1 week
+    if diff_hours <= 3:
+        date_format = '%m-%d %H:%i'
         group_by = "DATE(timestamp), HOUR(timestamp), MINUTE(timestamp)"
-    elif diff_hours <= 168: # 1 to 7 days -> group by Hour
-        date_format = '%%m-%%d %%H:00'
+        bucket_expr = "timestamp"
+    elif diff_hours <= 12:
+        date_format = '%m-%d %H:%i'
+        # Group by floor(minute / 5) * 5
+        group_by = "DATE(timestamp), HOUR(timestamp), FLOOR(MINUTE(timestamp) / 5) * 5"
+        bucket_expr = "TIMESTAMP(DATE(timestamp), MAKETIME(HOUR(timestamp), FLOOR(MINUTE(timestamp)/5)*5, 0))"
+    elif diff_hours <= 24:
+        date_format = '%m-%d %H:%i'
+        # Group by floor(minute / 10) * 10
+        group_by = "DATE(timestamp), HOUR(timestamp), FLOOR(MINUTE(timestamp) / 10) * 10"
+        bucket_expr = "TIMESTAMP(DATE(timestamp), MAKETIME(HOUR(timestamp), FLOOR(MINUTE(timestamp)/10)*10, 0))"
+    elif diff_hours <= 168:
+        date_format = '%m-%d %H:00'
         group_by = "DATE(timestamp), HOUR(timestamp)"
-    else: # More than 7 days -> group by Day
-        date_format = '%%Y-%%m-%%d'
+        bucket_expr = "timestamp"
+    elif diff_hours <= 730:
+        date_format = '%Y-%m-%d'
         group_by = "DATE(timestamp)"
+        bucket_expr = "timestamp"
+    else: # Weekly
+        date_format = 'Week %v, %Y' # '%v' is week (01-53) and '%Y' is year
+        group_by = "YEARWEEK(timestamp, 1)" # 1 indicates Monday as first day of week
+        bucket_expr = "timestamp"
 
     placeholders = ','.join(['%s'] * len(id_list))
     query = f"""
         SELECT 
-            DATE_FORMAT(timestamp, '{date_format}') as time, 
+            DATE_FORMAT(MIN({bucket_expr}), %s) as time, 
             sensor_id, 
             AVG(value) as avg_value
         FROM sensors
@@ -337,7 +424,7 @@ def get_sensor_history_range(sensor_ids: str, start_time: str, end_time: str):
         ORDER BY MIN(timestamp) ASC
     """
     
-    params = tuple(id_list) + (start_dt.strftime('%Y-%m-%d %H:%M:%S'), end_dt.strftime('%Y-%m-%d %H:%M:%S'))
+    params = (date_format,) + tuple(id_list) + (start_dt.strftime('%Y-%m-%d %H:%M:%S'), end_dt.strftime('%Y-%m-%d %H:%M:%S'))
 
     with db_session() as conn:
         with conn.cursor() as cursor:
