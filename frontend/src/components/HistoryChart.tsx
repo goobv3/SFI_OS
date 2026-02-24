@@ -15,29 +15,40 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
     const [data, setData] = useState<{ time: string, [key: string]: any }[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const formatLocal = (date: Date) => {
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+
     // Default to last 3 hours
     const defaultEnd = new Date();
     const defaultStart = new Date(defaultEnd.getTime() - (3 * 60 * 60 * 1000));
 
-    const [startTime, setStartTime] = useState(defaultStart.toISOString().slice(0, 16));
-    const [endTime, setEndTime] = useState(defaultEnd.toISOString().slice(0, 16));
+    // Time ranges passed to the backend
+    const [appliedStart, setAppliedStart] = useState(formatLocal(defaultStart));
+    const [appliedEnd, setAppliedEnd] = useState(formatLocal(defaultEnd));
     const [activePreset, setActivePreset] = useState<string>('3h');
 
-    // Display Toggles (Show Only Initial Sensor vs All)
+    // Display Toggles
     const [displayMode, setDisplayMode] = useState<'single' | 'both'>('single');
+    const [showPicker, setShowPicker] = useState(false);
+
+    // Temp state for modal
+    const [tempStart, setTempStart] = useState("");
+    const [tempEnd, setTempEnd] = useState("");
 
     const handlePreset = (hours: number, label: string) => {
         const end = new Date();
         const start = new Date(end.getTime() - (hours * 60 * 60 * 1000));
-        setStartTime(start.toISOString().slice(0, 16));
-        setEndTime(end.toISOString().slice(0, 16));
+        setAppliedStart(formatLocal(start));
+        setAppliedEnd(formatLocal(end));
         setActivePreset(label);
     };
 
     const fetchData = () => {
         setLoading(true);
-        const startIso = new Date(startTime).toISOString();
-        const endIso = new Date(endTime).toISOString();
+        const startIso = new Date(appliedStart).toISOString();
+        const endIso = new Date(appliedEnd).toISOString();
 
         const targets = displayMode === 'single' ? [initialSensorId] : sensors.map(s => s.id);
 
@@ -55,7 +66,20 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [displayMode]); // Reload data when mode changes
+    }, [displayMode, appliedStart, appliedEnd]);
+
+    const openPicker = () => {
+        setTempStart(appliedStart);
+        setTempEnd(appliedEnd);
+        setShowPicker(true);
+    };
+
+    const confirmPicker = () => {
+        setAppliedStart(tempStart);
+        setAppliedEnd(tempEnd);
+        setActivePreset('');
+        setShowPicker(false);
+    };
 
     const getLineColor = (index: number, type: string) => {
         if (type.includes('temp')) return '#ff6b6b';
@@ -97,29 +121,63 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
                 </div>
 
                 {/* Range Picker Controls */}
-                <div className="flex flex-wrap items-center gap-4 mb-6 bg-cyber-bg/50 p-4 rounded-lg border border-gray-800 flex-shrink-0">
+                <div className="flex flex-wrap items-center gap-4 mb-6 bg-cyber-bg/50 p-4 rounded-lg border border-gray-800 flex-shrink-0 relative">
                     <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-neon-blue" />
-                        <input
-                            type="datetime-local"
-                            value={startTime}
-                            onChange={(e) => { setStartTime(e.target.value); setActivePreset(''); }}
-                            className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-gray-200 focus:border-neon-blue outline-none"
-                        />
-                        <span className="text-gray-500">-</span>
-                        <input
-                            type="datetime-local"
-                            value={endTime}
-                            onChange={(e) => { setEndTime(e.target.value); setActivePreset(''); }}
-                            className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-gray-200 focus:border-neon-blue outline-none"
-                        />
                         <button
-                            onClick={fetchData}
-                            className="ml-2 px-4 py-1.5 bg-neon-blue/20 text-neon-blue border border-neon-blue/50 rounded hover:bg-neon-blue/30 transition-colors text-sm font-medium"
+                            onClick={openPicker}
+                            className="bg-cyber-surface border border-gray-700 hover:border-neon-blue transition-colors rounded px-4 py-1.5 text-sm text-gray-200 focus:outline-none"
                         >
-                            Apply
+                            {appliedStart.replace('T', ' ')} ~ {appliedEnd.replace('T', ' ')}
                         </button>
                     </div>
+
+                    {showPicker && (
+                        <div className="absolute top-16 left-4 bg-[#1a1c23] border border-gray-700 shadow-2xl rounded-lg p-5 z-50 flex flex-col gap-4">
+                            <h4 className="text-white text-sm font-semibold border-b border-gray-700 pb-2">사용자 정의 기간 설정</h4>
+
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-gray-400 text-xs w-8">시작</span>
+                                    <input type="date" value={tempStart.split('T')[0]}
+                                        onChange={e => setTempStart(`${e.target.value}T${tempStart.split('T')[1]}`)}
+                                        className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-white" />
+                                    <select value={tempStart.split('T')[1].split(':')[0]}
+                                        onChange={e => setTempStart(`${tempStart.split('T')[0]}T${e.target.value}:${tempStart.split('T')[1].split(':')[1]}`)}
+                                        className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-white">
+                                        {Array.from({ length: 24 }).map((_, i) => <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}시</option>)}
+                                    </select>
+                                    <select value={tempStart.split('T')[1].split(':')[1]}
+                                        onChange={e => setTempStart(`${tempStart.split('T')[0]}T${tempStart.split('T')[1].split(':')[0]}:${e.target.value}`)}
+                                        className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-white">
+                                        {Array.from({ length: 12 }).map((_, i) => <option key={i} value={(i * 5).toString().padStart(2, '0')}>{(i * 5).toString().padStart(2, '0')}분</option>)}
+                                    </select>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <span className="text-gray-400 text-xs w-8">종료</span>
+                                    <input type="date" value={tempEnd.split('T')[0]}
+                                        onChange={e => setTempEnd(`${e.target.value}T${tempEnd.split('T')[1]}`)}
+                                        className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-white" />
+                                    <select value={tempEnd.split('T')[1].split(':')[0]}
+                                        onChange={e => setTempEnd(`${tempEnd.split('T')[0]}T${e.target.value}:${tempEnd.split('T')[1].split(':')[1]}`)}
+                                        className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-white">
+                                        {Array.from({ length: 24 }).map((_, i) => <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}시</option>)}
+                                    </select>
+                                    <select value={tempEnd.split('T')[1].split(':')[1]}
+                                        onChange={e => setTempEnd(`${tempEnd.split('T')[0]}T${tempEnd.split('T')[1].split(':')[0]}:${e.target.value}`)}
+                                        className="bg-cyber-surface border border-gray-700 rounded px-2 py-1 text-sm text-white">
+                                        {Array.from({ length: 12 }).map((_, i) => <option key={i} value={(i * 5).toString().padStart(2, '0')}>{(i * 5).toString().padStart(2, '0')}분</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 mt-2">
+                                <button onClick={() => setShowPicker(false)} className="px-3 py-1.5 text-xs text-gray-400 hover:text-white transition-colors">취소</button>
+                                <button onClick={confirmPicker} className="px-4 py-1.5 bg-neon-blue/20 text-neon-blue border border-neon-blue/50 rounded hover:bg-neon-blue/40 transition-colors text-xs font-medium">적용 확인</button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Presets */}
                     <div className="flex items-center gap-2 border-l border-gray-700 pl-4">
