@@ -287,6 +287,70 @@ def get_sensor_history(sensor_id: str, period: str = 'daily'):
             
             return cursor.fetchall()
 
+@app.get("/api/sensors/history_range")
+def get_sensor_history_range(sensor_ids: str, start_time: str, end_time: str):
+    """
+    Fetch history data for one or multiple sensors within a custom time range.
+    `sensor_ids` should be a comma-separated string of sensor IDs.
+    """
+    id_list = [sid.strip() for sid in sensor_ids.split(",") if sid.strip()]
+    if not id_list:
+        raise HTTPException(status_code=400, detail="No sensor IDs provided")
+        
+    try:
+        from datetime import datetime
+        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        diff_hours = (end_dt - start_dt).total_seconds() / 3600
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format.")
+
+    # Determine grouping format based on duration
+    if diff_hours <= 24: # Less than a day -> group by Minute or every 10 mins depending on density (we'll use minute since user requested high density for 3h)
+        date_format = '%m-%d %H:%i' if diff_hours > 3 else '%H:%i' 
+        group_by = "DATE(timestamp), HOUR(timestamp), MINUTE(timestamp)"
+    elif diff_hours <= 168: # 1 to 7 days -> group by Hour
+        date_format = '%m-%d %H:00'
+        group_by = "DATE(timestamp), HOUR(timestamp)"
+    else: # More than 7 days -> group by Day
+        date_format = '%Y-%m-%d'
+        group_by = "DATE(timestamp)"
+
+    placeholders = ','.join(['%s'] * len(id_list))
+    query = f"""
+        SELECT 
+            DATE_FORMAT(timestamp, '{date_format}') as time, 
+            sensor_id, 
+            AVG(value) as avg_value
+        FROM sensors
+        WHERE sensor_id IN ({placeholders}) 
+          AND timestamp >= %s 
+          AND timestamp <= %s
+        GROUP BY {group_by}, sensor_id
+        ORDER BY MIN(timestamp) ASC
+    """
+    
+    params = tuple(id_list) + (start_dt.strftime('%Y-%m-%d %H:%M:%S'), end_dt.strftime('%Y-%m-%d %H:%M:%S'))
+
+    with db_session() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+
+    # Pivot data so each time point has all requested sensor values
+    # e.g., Output: [{"time": "14:30", "TEMP_1": 25.1, "HUMID_1": 60.5}, ...]
+    pivot_dict = {}
+    for row in rows:
+        t = row['time']
+        sid = row['sensor_id']
+        val = float(row['avg_value'])
+        
+        if t not in pivot_dict:
+            pivot_dict[t] = {"time": t}
+        pivot_dict[t][sid] = round(val, 2)
+        
+    return list(pivot_dict.values())
+
 @app.post("/api/control")
 def process_control(cmd: ControlCommand):
     with db_session() as conn:

@@ -83,8 +83,8 @@ export default function SensorDashboard({ houseId }: SensorDashboardProps) {
 
             {activeSensorHistory && (
                 <HistoryChart
-                    sensorId={activeSensorHistory.id}
-                    sensorName={activeSensorHistory.name}
+                    sensors={sensors.map(s => ({ id: s.sensor_id, name: s.alias, type: s.type }))}
+                    initialSensorId={activeSensorHistory.id}
                     onClose={() => setActiveSensorHistory(null)}
                 />
             )}

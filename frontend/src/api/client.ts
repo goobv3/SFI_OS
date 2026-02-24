@@ -80,6 +80,11 @@ export const smartFarmApi = {
         const response = await apiClient.get(`/sensors/${sensorId}/history?period=${period}`);
         return response.data; // [{ time: '...', avg_value: 23.5 }, ...]
     },
+    getSensorHistoryByRange: async (sensorIds: string[], startTime: string, endTime: string) => {
+        const ids = sensorIds.join(',');
+        const response = await apiClient.get(`/sensors/history_range?sensor_ids=${ids}&start_time=${startTime}&end_time=${endTime}`);
+        return response.data;
+    },
 
     // Control
     sendControlCommand: async (actuatorId: string, command: string, priority: number = 2) => {
