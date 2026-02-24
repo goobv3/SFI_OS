@@ -6,34 +6,29 @@ from datetime import datetime, timedelta
 # DB 연결
 conn = pymysql.connect(
     host=os.getenv('DB_HOST', 'mariadb'),
-    user=os.getenv('DB_USER', 'root'),
+    user=os.getenv('DB_USER', 'root'), # or farmuser based on env
     password=os.getenv('DB_PASSWORD', 'rootsecret'),
     database=os.getenv('DB_NAME', 'smartfarm')
 )
-cursor = conn.cursor()
+cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-# 대상 센서 고정 (미리 프론트에 등록되어 있다고 가정)
-SENSORS = [
-    {"id": "HISTORY_TEMP_1", "type": "temperature", "base": 25.0, "var": 5.0},
-    {"id": "HISTORY_HUMID_1", "type": "humidity", "base": 50.0, "var": 10.0}
-]
+cursor.execute("SELECT sensor_id, type FROM sensor_metadata")
+rows = cursor.fetchall()
 
-# 먼저 메타데이터에 없으면 House 1 추가
-cursor.execute("SELECT house_id FROM houses LIMIT 1")
-house = cursor.fetchone()
-if house:
-    house_id = house[0]
-else:
-    house_id = "HOUSE_DEFAULT"
-    cursor.execute("INSERT IGNORE INTO houses (house_id, name) VALUES (%s, %s)", (house_id, "Main House"))
+SENSORS = []
+for r in rows:
+    SENSORS.append({
+        "id": r['sensor_id'], 
+        "type": r['type'], 
+        "base": 25.0 if "temp" in r['type'].lower() else 50.0, 
+        "var": 5.0 if "temp" in r['type'].lower() else 15.0
+    })
 
-for s in SENSORS:
-    cursor.execute("""
-        INSERT IGNORE INTO sensor_metadata (sensor_id, house_id, alias, type, unit)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (s['id'], house_id, f"Virtual {s['type'].title()}", s['type'], "C" if s['type'] == "temperature" else "%"))
-
-conn.commit()
+if not SENSORS:
+    print("No sensors found in sensor_metadata. Please add some sensors first.")
+    cursor.close()
+    conn.close()
+    exit(0)
 
 # 데이터 생성: 최근 3일은 분 단위, 그 이전 27일은 시간 단위로 생성
 now = datetime.now()

@@ -298,22 +298,29 @@ def get_sensor_history_range(sensor_ids: str, start_time: str, end_time: str):
         raise HTTPException(status_code=400, detail="No sensor IDs provided")
         
     try:
-        from datetime import datetime
-        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        from datetime import datetime, timezone
+        import time
+        # Convert JS ISO string to UTC aware datetime
+        start_utc = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        end_utc = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        
+        # Convert UTC to local system time to match DB which stores in local time
+        start_dt = start_utc.astimezone()
+        end_dt = end_utc.astimezone()
+        
         diff_hours = (end_dt - start_dt).total_seconds() / 3600
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format.")
 
     # Determine grouping format based on duration
     if diff_hours <= 24: # Less than a day -> group by Minute or every 10 mins depending on density (we'll use minute since user requested high density for 3h)
-        date_format = '%m-%d %H:%i' if diff_hours > 3 else '%H:%i' 
+        date_format = '%%m-%%d %%H:%%i' if diff_hours > 3 else '%%H:%%i' 
         group_by = "DATE(timestamp), HOUR(timestamp), MINUTE(timestamp)"
     elif diff_hours <= 168: # 1 to 7 days -> group by Hour
-        date_format = '%m-%d %H:00'
+        date_format = '%%m-%%d %%H:00'
         group_by = "DATE(timestamp), HOUR(timestamp)"
     else: # More than 7 days -> group by Day
-        date_format = '%Y-%m-%d'
+        date_format = '%%Y-%%m-%%d'
         group_by = "DATE(timestamp)"
 
     placeholders = ','.join(['%s'] * len(id_list))
