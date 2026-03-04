@@ -5,6 +5,7 @@ USE smartfarm;
 CREATE TABLE IF NOT EXISTS houses (
     house_id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    display_order INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -16,6 +17,12 @@ CREATE TABLE IF NOT EXISTS sensor_metadata (
     type VARCHAR(50),   
     unit VARCHAR(10),
     calibration_offset FLOAT DEFAULT 0.0,
+    display_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    warn_high FLOAT NULL,
+    warn_low FLOAT NULL,
+    crit_high FLOAT NULL,
+    crit_low FLOAT NULL,
     registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (house_id) REFERENCES houses(house_id) ON DELETE CASCADE
 );
@@ -32,12 +39,26 @@ CREATE TABLE IF NOT EXISTS sensors (
 CREATE TABLE IF NOT EXISTS weather_data (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    source VARCHAR(20) DEFAULT 'KMA',
+    forecast_offset INT DEFAULT 0,
     wind_speed FLOAT,
     wind_direction VARCHAR(10),
     rainfall FLOAT,
     solar_radiation FLOAT,
     temperature FLOAT,
     humidity FLOAT
+);
+
+-- 3. ALARMS MANAGEMENT
+CREATE TABLE IF NOT EXISTS alarms (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sensor_id VARCHAR(50) NOT NULL,
+    level VARCHAR(20) NOT NULL,
+    message TEXT,
+    is_acknowledged BOOLEAN DEFAULT FALSE,
+    acknowledged_at DATETIME NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sensor_id) REFERENCES sensor_metadata(sensor_id) ON DELETE CASCADE
 );
 
 -- INBOX for unknown devices (Auto-Discovery feature)

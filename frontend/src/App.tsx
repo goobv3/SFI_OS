@@ -4,14 +4,24 @@ import SensorDashboard from './components/SensorDashboard';
 import ActuatorControl from './components/ActuatorControl';
 import ManageMode from './components/ManageMode';
 import AlarmToast from './components/AlarmToast';
+import WeatherWidget from './components/WeatherWidget';
 import { Activity, Settings } from 'lucide-react';
 import { smartFarmApi } from './api/client';
 
+// ---------------------------------------------------------
+// 프론트엔드 메인 앱 화면 (Main Frontend Application)
+// ---------------------------------------------------------
+// 이 파일은 스마트팜 웹페이지에 들어왔을 때 가장 먼저 보여지는 "대문"입니다.
+// 각종 부품(컴포넌트)들을 화면 좌, 우, 상단에 적절히 뼈대를 잡아 배치하는 역할을 합니다.
+// ---------------------------------------------------------
+
 function App() {
-  const [houses, setHouses] = useState<any[]>([]);
-  const [selectedHouseId, setSelectedHouseId] = useState<string>('');
-  const [isManageMode, setIsManageMode] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  // --- React 상태(State) 변수들 ---
+  // 화면이 바뀌어야 할 때마다 데이터를 기억해두는 공간입니다.
+  const [houses, setHouses] = useState<any[]>([]); // 데이터베이스에 등록된 1동, 2동 하우스 목록
+  const [selectedHouseId, setSelectedHouseId] = useState<string>(''); // 현재 화면에 띄운 하우스 ID (버튼 클릭시 변경됨)
+  const [isManageMode, setIsManageMode] = useState(false); // 오른쪽 위 톱니바퀴(Settings)를 눌렀는지 여부
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // 데이터를 새로고침할 때 숫자를 올려 화면을 다시 그리게 하는 트리거
 
   const fetchHouses = async () => {
     try {
@@ -34,7 +44,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-cyber-bg text-gray-200 font-sans">
-      {/* Header */}
+      {/* 1. Header (화면 가장 위쪽 헤더 영역) */}
       <header className="border-b border-cyber-border/30 bg-cyber-surface/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -47,6 +57,7 @@ function App() {
             <div className="text-sm text-gray-400">
               System Online <span className="inline-block w-2 h-2 rounded-full bg-neon-green ml-2 animate-pulse"></span>
             </div>
+            {/* 설정 모드(모달 창)를 띄우는 톱니바퀴 버튼 */}
             <button
               onClick={() => setIsManageMode(true)}
               className="text-gray-400 hover:text-white transition group flex items-center gap-1 bg-white/5 px-3 py-1.5 rounded-full border border-gray-700 hover:border-gray-500"
@@ -58,7 +69,7 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* 2. Main Content (헤더 아래의 실제 몸통 영역) */}
       <main className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
 
         {/* Left Sidebar: House Selector */}
@@ -75,6 +86,8 @@ function App() {
 
         {/* Right Content: Dashboard & Controls */}
         <div className="flex-1 space-y-8">
+          <WeatherWidget />
+
           {selectedHouseId ? (
             <>
               <div className="mb-6">

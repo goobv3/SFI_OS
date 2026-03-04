@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { smartFarmApi } from '../api/client';
-import { AlertTriangle, AlertOctagon, X } from 'lucide-react';
+import { AlertTriangle, AlertOctagon } from 'lucide-react';
 
 export default function AlarmToast() {
     const [alarms, setAlarms] = useState<any[]>([]);

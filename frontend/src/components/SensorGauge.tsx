@@ -1,13 +1,21 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
+// ---------------------------------------------------------
+// 센서 도넛 차트 (Sensor Gauge Component)
+// ---------------------------------------------------------
+// 이 파일은 대시보드에서 각 센서(온도, 습도 등)의 값을 
+// 시각적인 둥근 원형 게이지바(도넛 차트)로 예쁘게 그려주는 "디스플레이 부품"입니다.
+// 경고(Warning)치나 위험(Critical)치를 넘어가면 게이지 색상이 빨간색이나 주황색으로 실시간으로 변합니다.
+// ---------------------------------------------------------
+
 interface GaugeProps {
-    value: number;
-    min?: number;
-    max?: number;
-    warnLow?: number | null;
-    warnHigh?: number | null;
-    critLow?: number | null;
-    critHigh?: number | null;
+    value: number; // 현재 센서 측정 값
+    min?: number;  // 게이지의 최솟값
+    max?: number;  // 게이지의 최댓값
+    warnLow?: number | null; // 노란색 경고로 바뀔 하한선
+    warnHigh?: number | null; // 노란색 경고로 바뀔 상한선
+    critLow?: number | null;  // 빨간색 위험으로 바뀔 하한선
+    critHigh?: number | null; // 빨간색 위험으로 바뀔 상한선
     unit: string;
     title: string;
 }

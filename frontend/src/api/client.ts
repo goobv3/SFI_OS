@@ -1,16 +1,26 @@
 import axios from 'axios';
 
+// ---------------------------------------------------------
+// 프론트엔드 API 통신 관리자 (API Client)
+// ---------------------------------------------------------
+// 이 파일은 리액트 화면(프론트엔드)이 데이터가 필요할 때마다 
+// 파이썬 서버(백엔드)로 요청사항을 보내고 받아오는 '우체부' 역할을 합니다.
+// ---------------------------------------------------------
+
+// 백엔드 서버의 기본 주소입니다. 모든 통신은 이 주소로 시작합니다.
 const API_BASE_URL = 'http://localhost:8000/api';
 
+// axios(통신 라이브러리)를 이용해 기본적으로 사용할 편지지(설정)를 만듭니다.
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json', // 데이터를 JSON(글자) 형태로 보낸다고 알려줌
     },
 });
 
+// 기능별로 사용할 수 있는 우체부 기능 목록
 export const smartFarmApi = {
-    // Houses
+    // --- [1. 하우스(온실) 관리 통신] ---
     getHouses: async () => {
         const response = await apiClient.get('/houses');
         return response.data; // [{ house_id, name, created_at }, ...]
@@ -105,6 +115,13 @@ export const smartFarmApi = {
             priority: priority,
         });
         return response.data;
+    },
+
+    // --- [5. 날씨 정보 통신] ---
+    getLatestWeather: async (hours_ahead: number = 0) => {
+        // 백엔드에게 "제발 최신 날씨(그리고 hours_ahead 시간 뒤의 예보)를 줘!" 라고 요청합니다.
+        const response = await apiClient.get(`/weather/latest?hours_ahead=${hours_ahead}`);
+        return response.data; // 서버가 준 날씨 데이터를 반환합니다.
     },
 };
 
