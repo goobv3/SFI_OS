@@ -5,6 +5,7 @@ import ActuatorControl from './components/ActuatorControl';
 import ManageMode from './components/ManageMode';
 import AlarmToast from './components/AlarmToast';
 import WeatherWidget from './components/WeatherWidget';
+import QuickAddModal from './components/QuickAddModal';
 import { Activity, Settings } from 'lucide-react';
 import { smartFarmApi } from './api/client';
 
@@ -22,6 +23,8 @@ function App() {
   const [selectedHouseId, setSelectedHouseId] = useState<string>(''); // 현재 화면에 띄운 하우스 ID (버튼 클릭시 변경됨)
   const [isManageMode, setIsManageMode] = useState(false); // 오른쪽 위 톱니바퀴(Settings)를 눌렀는지 여부
   const [refreshTrigger, setRefreshTrigger] = useState(0); // 데이터를 새로고침할 때 숫자를 올려 화면을 다시 그리게 하는 트리거
+  const [discoveredDevices, setDiscoveredDevices] = useState<any[]>([]); // 미등록된 새 기기 목록
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false); // 1-Click 등록 모달 표시 여부
 
   const fetchHouses = async () => {
     try {
@@ -38,8 +41,25 @@ function App() {
     }
   };
 
+  const pollDiscoveredDevices = async () => {
+    try {
+      const data = await smartFarmApi.getDiscoveredDevices();
+      setDiscoveredDevices(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     fetchHouses();
+    pollDiscoveredDevices();
+    
+    // 10초마다 자동 스캔 (기존의 수동 스캔 대체)
+    const interval = setInterval(() => {
+        pollDiscoveredDevices();
+    }, 10000);
+    
+    return () => clearInterval(interval);
   }, [isManageMode]);
 
   return (
@@ -71,6 +91,19 @@ function App() {
 
       {/* 2. Main Content (헤더 아래의 실제 몸통 영역) */}
       <main className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+
+        {/* --- Proactive Auto-Discovery Banner --- */}
+        {discoveredDevices.length > 0 && (
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-amber-500/90 border border-amber-400 text-black px-6 py-3 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.5)] flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform" onClick={() => setShowQuickAddModal(true)}>
+                <div className="bg-black/20 p-2 rounded-full animate-pulse">
+                    <Activity className="w-6 h-6" />
+                </div>
+                <div>
+                    <h3 className="font-bold text-lg tracking-wide">새로운 기기 {discoveredDevices.length}개가 감지되었습니다!</h3>
+                    <p className="text-sm font-medium opacity-80">여기를 클릭하여 현재 하우스({houses.find(h => h.house_id === selectedHouseId)?.name || '선택 안됨'})에 1-Click 등록하세요.</p>
+                </div>
+            </div>
+        )}
 
         {/* Left Sidebar: House Selector */}
         <aside className="w-full lg:w-64 shrink-0">
@@ -120,6 +153,21 @@ function App() {
 
       {/* Alarm Notifications */}
       <AlarmToast />
+
+      {/* Quick Add Modal */}
+      {showQuickAddModal && (
+        <QuickAddModal 
+            houseId={selectedHouseId} 
+            houseName={houses.find(h => h.house_id === selectedHouseId)?.name || ''}
+            devices={discoveredDevices} 
+            onClose={() => setShowQuickAddModal(false)}
+            onComplete={() => {
+                setShowQuickAddModal(false);
+                setRefreshTrigger(prev => prev + 1); // reload dashboard
+                pollDiscoveredDevices(); // clear banner
+            }}
+        />
+      )}
 
       {/* Settings Modal */}
       {isManageMode && (
