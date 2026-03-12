@@ -39,11 +39,15 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+      mosquitto:
+        condition: service_started
     environment:
       - DB_HOST=mariadb
       - DB_USER=farmuser
       - DB_PASSWORD=farmsecret
       - DB_NAME=smartfarm
+      - MQTT_HOST=mosquitto
+    command: ./build/smartfarm_server
 
 #  frontend:
 #    build: ./frontend
