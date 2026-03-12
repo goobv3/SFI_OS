@@ -249,3 +249,68 @@ class SensorManager:
             pivot_dict[t][sid] = round(val, 2)
             
         return list(pivot_dict.values())
+
+# ==========================
+# 4. MQTT 백그라운드 리스너
+# ==========================
+import paho.mqtt.client as mqtt
+import pymysql
+
+class MQTTSensorListener:
+    def __init__(self, db_params: dict, mqtt_host: str = "mosquitto", mqtt_port: int = 1883):
+        self.db_params = db_params
+        self.mqtt_host = mqtt_host
+        self.mqtt_port = mqtt_port
+        self.client = mqtt.Client(client_id="sfi_os_backend_listener")
+        
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
+
+    def start(self):
+        try:
+            self.client.connect(self.mqtt_host, self.mqtt_port, 60)
+            self.client.loop_start()
+            print(f"[MQTT] Sensor Listener connected to {self.mqtt_host}:{self.mqtt_port}")
+        except Exception as e:
+            print(f"[MQTT] Failed to connect: {e}")
+
+    def stop(self):
+        self.client.loop_stop()
+        self.client.disconnect()
+        print("[MQTT] Sensor Listener disconnected.")
+
+    def on_connect(self, client, userdata, flags, rc):
+        if rc == 0:
+            print(f"[MQTT] Connected successfully to Mosquitto broker. Error code {rc}")
+            # 아두이노 등이 smartfarm/sensors/<sensor_id>/value 토픽으로 데이터를 쏩니다
+            self.client.subscribe("smartfarm/sensors/+/value")
+            print("[MQTT] Subscribed to topic: smartfarm/sensors/+/value")
+        else:
+            print(f"[MQTT] Connection failed with code {rc}")
+
+    def on_message(self, client, userdata, msg):
+        try:
+            # Topic: smartfarm/sensors/TEMP_01/value
+            parts = msg.topic.split("/")
+            if len(parts) >= 4 and parts[-1] == "value":
+                sensor_id = parts[2]
+                value = float(msg.payload.decode("utf-8"))
+                
+                # DB 연결 후 SensorManager 호출
+                conn = pymysql.connect(
+                    host=self.db_params['host'],
+                    port=self.db_params['port'],
+                    user=self.db_params['user'],
+                    password=self.db_params['password'],
+                    database=self.db_params['db_name'],
+                    cursorclass=pymysql.cursors.DictCursor
+                )
+                try:
+                    manager = SensorManager(conn)
+                    result = manager.process_incoming_data(sensor_id, value)
+                    print(f"[MQTT] Processed {sensor_id}: {value} -> {result['status']}")
+                finally:
+                    conn.close()
+        except Exception as e:
+            print(f"[MQTT] Message handling error: {e}")
+

@@ -5,9 +5,11 @@
 # 즉각적으로 명령을 실행하지 않고, 사전에 정의된 안전 규칙(Interlock Rules)을
 # 검사하여 하드웨어 파손을 막아주는 핵심 제어 라이브러리입니다.
 # ---------------------------------------------------------
+import os
+import paho.mqtt.publish as mqtt_publish
 
 class ControlManager:
-    def __init__(self, db_conn, rules: list):
+    def __init__(self, db_params_or_conn=None, rules: list = None):
         """
         ControlManager 객체를 초기화합니다.
         
@@ -15,8 +17,8 @@ class ControlManager:
         :param rules: 제어 충돌을 방지하기 위한 안전(Interlock) 규칙 리스트 
                       (참고: 주로 arbitration.py 에서 YAML 파일을 읽어와 전달합니다)
         """
-        self.conn = db_conn
-        self.rules = rules
+        self.conn = db_params_or_conn
+        self.rules = rules if rules is not None else []
 
     def process_control_command(self, actuator_id: str, command: str, source: str = "Manual", priority: int = 2):
         """
@@ -85,6 +87,15 @@ class ControlManager:
                 
                 self._log_control(cursor, actuator_id, command, source, priority, "Success", "Command executed")
                 self.conn.commit()
+                
+                # MQTT 브로커로 제어 명령(Publish) 즉각 발송 (Fire-and-forget)
+                try:
+                    mqtt_host = os.getenv("MQTT_HOST", "mosquitto")
+                    topic = f"smartfarm/actuators/{actuator_id}/command"
+                    mqtt_publish.single(topic, command, hostname=mqtt_host, port=1883)
+                except Exception as mqtt_e:
+                    print(f"[MQTT] Warning: Failed to publish control command: {mqtt_e}")
+                    
                 return {"status": "success", "message": "Command executed"}
                 
             except Exception as e:

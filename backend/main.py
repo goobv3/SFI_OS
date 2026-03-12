@@ -19,8 +19,12 @@ from arbitration import load_rules
 from contextlib import contextmanager
 from weather_lib import KMAWeatherFetcher
 from house_lib import HouseManager
-from sensor_lib import SensorManager
+from sensor_lib import SensorManager, MQTTSensorListener
 from control_lib import ControlManager
+import os
+
+# MQTT Listener 인스턴스 (글로벌 변수로 유지)
+mqtt_listener = None
 
 # FastAPI 서버 앱을 생성합니다. (우리가 만들 서버의 이름입니다)
 app = FastAPI(title="Smart Farm Intelligence OS API")
@@ -378,5 +382,27 @@ async def fetch_kma_weather():
 
 @app.on_event("startup")
 async def startup_event():
+    global mqtt_listener
+    
+    # 1. 기상청 백그라운드 태스크 시작
     asyncio.create_task(fetch_kma_weather())
+    
+    # 2. MQTT 백그라운드 리스너 시작
+    db_params = {
+        'host': os.getenv("DB_HOST", "mariadb"),
+        'port': int(os.getenv("DB_PORT", 3306)),
+        'user': os.getenv("DB_USER", "farmuser"),
+        'password': os.getenv("DB_PASSWORD", "farmsecret"),
+        'db_name': os.getenv("DB_NAME", "smartfarm")
+    }
+    # docker-compose 에서는 'mosquitto' 서비스명으로 컨테이너간 통신
+    mqtt_host = os.getenv("MQTT_HOST", "mosquitto")
+    mqtt_listener = MQTTSensorListener(db_params, mqtt_host=mqtt_host)
+    mqtt_listener.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    global mqtt_listener
+    if mqtt_listener:
+        mqtt_listener.stop()
 
