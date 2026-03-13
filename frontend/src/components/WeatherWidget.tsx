@@ -23,7 +23,7 @@ interface WeatherInfo {
 }
 
 const WeatherWidget: React.FC = () => {
-    const { t } = useLanguage();
+    const { t, lang } = useLanguage();
     const [kmaWeather, setKmaWeather] = useState<WeatherInfo | null>(null);
     const [farmWeather, setFarmWeather] = useState<WeatherInfo | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -164,9 +164,9 @@ const WeatherWidget: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h2 className="text-2xl font-bold text-white tracking-wide border-l-4 border-neon-blue pl-4 mb-1">
-                        External Weather Intelligence
+                        {t('externalWeather')}
                     </h2>
-                    <p className="text-gray-400 text-sm">Real-time macro environmental data & predictions</p>
+                    <p className="text-gray-400 text-sm">{lang === 'ko' ? '실시간 기상 데이터 및 예보' : 'Real-time macro environmental data & predictions'}</p>
                 </div>
                 {!isLoading && (
                     <button onClick={fetchWeather} className="text-xs text-neon-blue hover:text-white transition flex items-center gap-1 bg-[#1a1c23] border border-cyber-border/40 px-3 py-1.5 rounded-md hover:border-neon-blue">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { smartFarmApi } from '../api/client';
 import { X, Plus, Trash2, Home, Activity, Power, Settings, Edit2, Save, XCircle, Inbox } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface ManageModeProps {
     onClose: () => void;
@@ -8,6 +9,7 @@ interface ManageModeProps {
 }
 
 export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
+    const { t } = useLanguage();
     const [houses, setHouses] = useState<any[]>([]);
     const [newHouseId, setNewHouseId] = useState('');
     const [newHouseName, setNewHouseName] = useState('');
@@ -341,7 +343,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
 
     const handleRegisterFromInbox = async (device: any) => {
         const form = inboxForms[device.device_id];
-        if (!form || !form.house_id || !form.alias) return alert("Please select a house and provide an alias.");
+        if (!form || !form.house_id || !form.alias) return alert(t('fillRequired'));
 
         try {
             if (device.device_type === 'sensor') {
@@ -355,14 +357,14 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
             }
             await smartFarmApi.deleteDiscoveredDevice(device.device_id);
             fetchDiscovered();
-            alert(`Device ${device.device_id} successfully registered!`);
+            alert(`${t('deviceRegistered')}`);
         } catch (e) {
-            alert("Failed to register device from inbox");
+            alert(t('failedToSave'));
         }
     };
 
     const handleDeleteFromInbox = async (deviceId: string) => {
-        if (!window.confirm(`Ignore this device signal (${deviceId})?`)) return;
+        if (!window.confirm(`${t('ignoreDevice')} (${deviceId})`)) return;
         await smartFarmApi.deleteDiscoveredDevice(deviceId);
         fetchDiscovered();
     };
@@ -375,16 +377,16 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                     <div className="flex items-center gap-4">
                         <h2 className="text-xl font-bold text-white tracking-widest flex items-center gap-2">
                             <Settings className="w-5 h-5 text-neon-blue" />
-                            SYSTEM CONFIGURATION
+                        {t('sysConfig')}
                         </h2>
                         {isDirty && (
                             <div className="flex items-center gap-2 ml-4 animate-fade-in">
-                                <span className="text-amber-400 text-sm font-semibold tracking-wide mr-2">Unsaved changes</span>
+                                <span className="text-amber-400 text-sm font-semibold tracking-wide mr-2">{t('unsavedChanges')}</span>
                                 <button onClick={handleCancel} className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-1.5 px-4 rounded transition">
-                                    Cancel
+                                    {t('cancel')}
                                 </button>
                                 <button onClick={handleSaveAll} className="bg-neon-blue hover:bg-blue-400 text-black shadow-[0_0_10px_rgba(0,240,255,0.4)] text-sm font-bold py-1.5 px-4 rounded transition flex items-center gap-1">
-                                    <Save className="w-4 h-4" /> Save Ordering
+                                    <Save className="w-4 h-4" /> {t('saveOrdering')}
                                 </button>
                             </div>
                         )}
@@ -392,7 +394,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                     <button
                         onClick={() => {
                             if (isDirty) {
-                                if (window.confirm("You have unsaved changes. Are you sure you want to close?")) {
+                                if (window.confirm(t('unsavedCloseConfirm'))) {
                                     onClose();
                                 }
                             } else {
@@ -418,11 +420,11 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                             >
                                 <div className="flex items-center gap-2">
                                     <Inbox className="w-5 h-5" />
-                                    <span>Discovery Inbox</span>
+                                    <span>{t('discoveryInbox')}</span>
                                 </div>
                                 {discoveredDevices.length > 0 && (
                                     <span className="bg-amber-500 text-black text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
-                                        {discoveredDevices.length} NEW
+                                        {discoveredDevices.length} {t('new')}
                                     </span>
                                 )}
                             </button>
@@ -430,27 +432,27 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
 
                         {/* House Creation */}
                         <div className="p-4 border-b border-cyber-border/10">
-                            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Add Location (House)</h3>
+                                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('addLocation')}</h3>
                             <div className="space-y-2">
                                 <input
-                                    type="text" placeholder="House ID (e.g. HOUSE_2)"
+                                    type="text" placeholder={t('houseIdPlaceholder')}
                                     value={newHouseId} onChange={e => setNewHouseId(e.target.value)}
                                     className="w-full bg-black/50 border border-gray-700 rounded px-3 py-1.5 text-sm focus:border-neon-blue outline-none"
                                 />
                                 <input
-                                    type="text" placeholder="House Name (e.g. House 2)"
+                                    type="text" placeholder={t('houseNamePlaceholder')}
                                     value={newHouseName} onChange={e => setNewHouseName(e.target.value)}
                                     className="w-full bg-black/50 border border-gray-700 rounded px-3 py-1.5 text-sm focus:border-neon-blue outline-none"
                                 />
                                 <button onClick={handleAddHouse} className="w-full bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue border border-neon-blue/40 text-sm py-1.5 rounded transition">
-                                    <Plus className="w-4 h-4 inline-block mr-1" /> CREATE
+                                    <Plus className="w-4 h-4 inline-block mr-1" /> {t('create')}
                                 </button>
                             </div>
                         </div>
 
                         {/* House List */}
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1 mb-1">Registered Houses</h3>
+                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1 mb-1">{t('registeredHouses')}</h3>
                             {houses.map((h, index) => (
                                 <div
                                     key={h.house_id}
@@ -514,15 +516,15 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                 <div className="border-b border-cyber-border/20 pb-4 flex items-end justify-between">
                                     <div>
                                         <h3 className="text-2xl font-bold tracking-wide text-amber-400 flex items-center gap-2">
-                                            <Activity className="w-6 h-6" /> Auto-Discovery (Radar Mode)
+                                            <Activity className="w-6 h-6" /> {t('autoDiscovery')}
                                         </h3>
-                                        <p className="text-gray-400 text-sm mt-1">Scan for new devices broadcasting around the network.</p>
+                                        <p className="text-gray-400 text-sm mt-1">{t('autoDiscoveryDesc')}</p>
                                     </div>
 
                                     <div className="flex gap-3 items-center">
                                         {isScanning && (
                                             <div className="text-amber-500 font-mono text-sm mr-2 flex items-center gap-2 animate-pulse">
-                                                Scanning... {scanProgress}s left
+                                                {t('scanning')}... {scanProgress}{t('scanningProgress')}
                                             </div>
                                         )}
                                         <button
@@ -532,7 +534,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                                 : 'bg-amber-500/20 text-amber-500 border-amber-500/50 hover:bg-amber-500/30'
                                                 }`}
                                         >
-                                            {isScanning ? <><XCircle className="w-4 h-4" /> Stop Scan</> : <><Activity className="w-4 h-4" /> Start Scan</>}
+                                            {isScanning ? <><XCircle className="w-4 h-4" /> {t('stopScan')}</> : <><Activity className="w-4 h-4" /> {t('startScan')}</>}
                                         </button>
                                     </div>
                                 </div>
@@ -547,16 +549,16 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                             <div className="absolute inset-0 rounded-full border-t-4 border-amber-400 animate-[spin_2s_linear_infinite]"></div>
                                             <Activity className="absolute inset-0 m-auto w-8 h-8 text-amber-400 animate-pulse" />
                                         </div>
-                                        <p className="text-lg font-bold animate-pulse">Listening for device signals...</p>
-                                        <p className="text-sm mt-2 text-gray-500">Please power on your Arduino/Sensors now.</p>
+                                        <p className="text-lg font-bold animate-pulse">{t('listeningSignal')}</p>
+                                        <p className="text-sm mt-2 text-gray-500">{t('listeningHint')}</p>
                                     </div>
                                 )}
 
                                 {!isScanning && discoveredDevices.length === 0 && (
                                     <div className="flex-1 flex flex-col items-center justify-center p-12 text-gray-500">
                                         <Inbox className="w-16 h-16 mb-4 opacity-50" />
-                                        <p>No devices discovered.</p>
-                                        <p className="text-sm mt-2">Click "Start Scan" to search for new hardware.</p>
+                                        <p>{t('noDevicesFound')}</p>
+                                        <p className="text-sm mt-2">{t('clickStartScan')}</p>
                                     </div>
                                 )}
 
@@ -573,7 +575,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                                                 <span className="bg-gray-800 text-xs px-2 py-0.5 rounded text-gray-300">{device.device_type.toUpperCase()}</span>
                                                             </div>
                                                             <div className="text-sm text-gray-400 mt-1">
-                                                                Last Signal: {new Date(device.last_seen).toLocaleString()} <span className="text-amber-400 font-bold ml-2">Value: {device.last_value}</span>
+                                                                {t('lastSignal')}: {new Date(device.last_seen).toLocaleString()} <span className="text-amber-400 font-bold ml-2">{t('value')}: {device.last_value}</span>
                                                             </div>
                                                         </div>
                                                         <button onClick={() => handleDeleteFromInbox(device.device_id)} className="text-gray-500 hover:text-red-400 p-1">
@@ -583,30 +585,30 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
 
                                                     <div className="flex flex-wrap gap-3 items-end bg-black/40 p-4 rounded-md border border-gray-800">
                                                         <div className="flex-1 min-w-[150px]">
-                                                            <label className="block text-xs text-gray-500 mb-1">Assign to House</label>
+                                                            <label className="block text-xs text-gray-500 mb-1">{t('assignToHouse')}</label>
                                                             <select value={form.house_id} onChange={e => handleInboxFormChange(device.device_id, 'house_id', e.target.value)} className="w-full bg-[#1a1c23] border border-gray-700 rounded px-2 py-1.5 text-sm outline-none focus:border-amber-400">
                                                                 {houses.map(h => <option key={h.house_id} value={h.house_id}>{h.name}</option>)}
                                                             </select>
                                                         </div>
                                                         <div className="flex-[1.5] min-w-[150px]">
-                                                            <label className="block text-xs text-gray-500 mb-1">Alias / Name</label>
+                                                            <label className="block text-xs text-gray-500 mb-1">{t('aliasName')}</label>
                                                             <input type="text" placeholder="e.g. Main Temp" value={form.alias} onChange={e => handleInboxFormChange(device.device_id, 'alias', e.target.value)} className="w-full bg-[#1a1c23] border border-gray-700 rounded px-2 py-1.5 text-sm outline-none focus:border-amber-400" />
                                                         </div>
                                                         <div className="w-28">
-                                                            <label className="block text-xs text-gray-500 mb-1">Type</label>
+                                                            <label className="block text-xs text-gray-500 mb-1">{t('type')}</label>
                                                             <select value={form.type} onChange={e => handleInboxFormChange(device.device_id, 'type', e.target.value)} className="w-full bg-[#1a1c23] border border-gray-700 rounded px-2 py-1.5 text-sm outline-none focus:border-amber-400">
-                                                                <option value="temperature">Temperature</option>
-                                                                <option value="humidity">Humidity</option>
-                                                                <option value="solar">Solar Rad.</option>
-                                                                <option value="soil_temp">Soil Temp</option>
+                                                                <option value="temperature">{t('typeTemp')}</option>
+                                                                <option value="humidity">{t('typeHumidity')}</option>
+                                                                <option value="solar">{t('typeSolar')}</option>
+                                                                <option value="soil_temp">{t('typeSoilTemp')}</option>
                                                             </select>
                                                         </div>
                                                         <div className="w-16">
-                                                            <label className="block text-xs text-gray-500 mb-1">Unit</label>
+                                                            <label className="block text-xs text-gray-500 mb-1">{t('unit')}</label>
                                                             <input type="text" placeholder="C, %" value={form.unit} onChange={e => handleInboxFormChange(device.device_id, 'unit', e.target.value)} className="w-full bg-[#1a1c23] border border-gray-700 rounded px-2 py-1.5 text-sm outline-none focus:border-amber-400 text-center" />
                                                         </div>
                                                         <button onClick={() => handleRegisterFromInbox(device)} className="bg-amber-500 hover:bg-amber-400 text-black font-bold py-1.5 px-4 rounded transition">
-                                                            Register
+                                                            {t('register')}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -621,24 +623,24 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                         {viewMode === 'house_editor' && selectedHouseId && (
                             <div className="p-6 h-full space-y-8">
                                 <h3 className="text-xl font-bold tracking-wide text-neon-blue border-b border-cyber-border/20 pb-3">
-                                    Device Editor: {houses.find(h => h.house_id === selectedHouseId)?.name}
+                                    {t('deviceEditor')}: {houses.find(h => h.house_id === selectedHouseId)?.name}
                                 </h3>
 
                                 {/* Sensors Section */}
                                 <section>
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="flex items-center gap-2 font-semibold text-neon-green uppercase tracking-wider"><Activity className="w-5 h-5" /> Sensors</h4>
+                                        <h4 className="flex items-center gap-2 font-semibold text-neon-green uppercase tracking-wider"><Activity className="w-5 h-5" /> {t('sensorsSection')}</h4>
                                     </div>
 
                                     {/* Add Sensor Form */}
                                     <div className="bg-[#161821] border border-cyber-border/20 p-4 rounded-lg flex flex-wrap gap-2 items-center mb-4 text-sm">
-                                        <span className="text-gray-500 font-medium mr-2">Manual Add:</span>
-                                        <input type="text" placeholder="Sensor ID (e.g. TEMP_02)" value={newSensor.id} onChange={e => setNewSensor({ ...newSensor, id: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
-                                        <input type="text" placeholder="Alias (e.g. Zone 2 Temp)" value={newSensor.alias} onChange={e => setNewSensor({ ...newSensor, alias: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
+                                        <span className="text-gray-500 font-medium mr-2">{t('manualAdd')}</span>
+                                        <input type="text" placeholder={t('sensorIdPlaceholder')} value={newSensor.id} onChange={e => setNewSensor({ ...newSensor, id: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
+                                        <input type="text" placeholder={t('sensorAliasPlaceholder')} value={newSensor.alias} onChange={e => setNewSensor({ ...newSensor, alias: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
                                         <select value={newSensor.type} onChange={e => setNewSensor({ ...newSensor, type: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 w-32">
-                                            <option value="temperature">Temperature</option>
-                                            <option value="humidity">Humidity</option>
-                                            <option value="solar">Solar Rad.</option>
+                                            <option value="temperature">{t('typeTemp')}</option>
+                                            <option value="humidity">{t('typeHumidity')}</option>
+                                            <option value="solar">{t('typeSolar')}</option>
                                         </select>
                                         <input type="text" placeholder="Unit (C, %)" value={newSensor.unit} onChange={e => setNewSensor({ ...newSensor, unit: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 w-16 text-center" />
                                         <button onClick={handleAddSensor} className="bg-neon-green/20 hover:bg-neon-green/30 text-neon-green border border-neon-green/40 px-3 py-1.5 rounded transition"><Plus className="w-4 h-4" /></button>
@@ -685,7 +687,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                                 )}
                                             </div>
                                         ))}
-                                        {houseDevices.sensors.length === 0 && <div className="text-gray-600 text-sm py-2">No sensors registered.</div>}
+                                        {houseDevices.sensors.length === 0 && <div className="text-gray-600 text-sm py-2">{t('noSensorsReg')}</div>}
                                     </div>
                                 </section>
 
@@ -694,19 +696,19 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                 {/* Actuators Section */}
                                 <section>
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="flex items-center gap-2 font-semibold text-neon-orange uppercase tracking-wider"><Power className="w-5 h-5" /> Actuators</h4>
+                                        <h4 className="flex items-center gap-2 font-semibold text-neon-orange uppercase tracking-wider"><Power className="w-5 h-5" /> {t('actuatorsSection')}</h4>
                                     </div>
 
                                     {/* Add Actuator Form */}
                                     <div className="bg-[#161821] border border-cyber-border/20 p-4 rounded-lg flex flex-wrap gap-2 items-center mb-4 text-sm">
-                                        <span className="text-gray-500 font-medium mr-2">Manual Add:</span>
-                                        <input type="text" placeholder="Actuator ID (e.g. WINDOW_2)" value={newActuator.id} onChange={e => setNewActuator({ ...newActuator, id: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
-                                        <input type="text" placeholder="Alias (e.g. Left Window)" value={newActuator.alias} onChange={e => setNewActuator({ ...newActuator, alias: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
+                                        <span className="text-gray-500 font-medium mr-2">{t('manualAdd')}</span>
+                                        <input type="text" placeholder={t('actuatorIdPlaceholder')} value={newActuator.id} onChange={e => setNewActuator({ ...newActuator, id: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
+                                        <input type="text" placeholder={t('actuatorAliasPlaceholder')} value={newActuator.alias} onChange={e => setNewActuator({ ...newActuator, alias: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 flex-1 min-w-[120px]" />
                                         <select value={newActuator.type} onChange={e => setNewActuator({ ...newActuator, type: e.target.value })} className="bg-black/50 border border-gray-700 rounded px-2 py-1.5 w-32">
-                                            <option value="ROOF_WINDOW">Roof Window</option>
-                                            <option value="HEATER">Heater</option>
-                                            <option value="COOLER">Cooler</option>
-                                            <option value="PUMP">Pump</option>
+                                            <option value="ROOF_WINDOW">{t('typeRoofWindow')}</option>
+                                            <option value="HEATER">{t('typeHeater')}</option>
+                                            <option value="COOLER">{t('typeCooler')}</option>
+                                            <option value="PUMP">{t('typePump')}</option>
                                         </select>
                                         <button onClick={handleAddActuator} className="bg-neon-orange/20 hover:bg-neon-orange/30 text-neon-orange border border-neon-orange/40 px-3 py-1.5 rounded transition"><Plus className="w-4 h-4" /></button>
                                     </div>
@@ -738,7 +740,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                                 )}
                                             </div>
                                         ))}
-                                        {houseDevices.actuators.length === 0 && <div className="text-gray-600 text-sm py-2">No actuators registered.</div>}
+                                        {houseDevices.actuators.length === 0 && <div className="text-gray-600 text-sm py-2">{t('noActuatorsReg')}</div>}
                                     </div>
                                 </section>
 
@@ -749,7 +751,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                         {viewMode === 'house_editor' && !selectedHouseId && (
                             <div className="flex-1 flex flex-col items-center justify-center text-gray-500 p-8 text-center space-y-4">
                                 <Settings className="w-16 h-16 text-gray-700 mx-auto" />
-                                <p>Select a house from the left panel to configure its sensors and actuators manually.</p>
+                                <p>{t('selectHouseHint')}</p>
                             </div>
                         )}
 
