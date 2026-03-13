@@ -12,10 +12,11 @@
 #include "../managers/WeatherManager.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include "crow/middlewares/cors.h"
 
 namespace API {
 
-void Router::setupRoutes(crow::SimpleApp& app) {
+void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
 
     // JSON 응답을 CORS 헤더와 함께 생성하는 헬퍼 람다
     auto jsonResponse = [](const nlohmann::json& data, int status = 200) {
@@ -28,7 +29,33 @@ void Router::setupRoutes(crow::SimpleApp& app) {
     };
 
     // --- OPTIONS 사전 요청 처리 (CORS Preflight) ---
+    // Crow의 <path> 파라미터는 '/'를 포함한 경로를 매칭하지 못하므로
+    // 메타데이터 경로별로 명시적 OPTIONS 핸들러를 등록합니다.
     CROW_ROUTE(app, "/api/<path>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/houses").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/houses/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/houses/reorder").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/sensors").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/sensors/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/actuators").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/actuators/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
+        return jsonResponse({});
+    });
+    CROW_ROUTE(app, "/api/metadata/discovery/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
         return jsonResponse({});
     });
 

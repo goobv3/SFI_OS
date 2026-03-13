@@ -64,8 +64,16 @@ int main() {
         std::cout << "[Boot] ⚠️ MQTT 연결 실패 - 계속 진행합니다." << std::endl;
     }
 
-    // --- 3. Crow 웹서버 조립 ---
-    crow::SimpleApp app;
+    // --- 3. Crow 웹서버 조립 (CORSHandler 미들웨어 포함) ---
+    crow::App<crow::CORSHandler> app;
+
+    // CORS 전역 정책: 모든 출처·메서드·헤더 허용
+    auto& cors = app.get_middleware<crow::CORSHandler>();
+    cors.global()
+        .origin("*")
+        .methods("GET,POST,PUT,DELETE,OPTIONS"_method)
+        .headers("Content-Type, Authorization")
+        .max_age(86400);
 
     // 모든 REST 라우트 등록
     API::Router::setupRoutes(app);
