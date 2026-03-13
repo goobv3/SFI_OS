@@ -48,26 +48,26 @@ export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashb
         return { icon: Activity, color: 'text-gray-400', glow: '' };
     };
 
-    if (loading) return <div className="text-neon-blue animate-pulse">{t('loadingSensors')}</div>;
-    if (!sensors.length) return <div className="text-gray-500">{t('noSensors')}</div>;
+    if (loading) return <div className="text-neon-blue animate-pulse text-xs">{t('loadingSensors')}</div>;
+    if (!sensors.length) return <div className="text-gray-500 text-xs">{t('noSensors')}</div>;
 
     return (
         <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
                 {sensors.map((sensor) => {
                     const { icon: IconNode, color } = getIconAndColor(sensor.type);
                     return (
                         <div
                             key={sensor.sensor_id}
                             onClick={() => setActiveSensorHistory({ id: sensor.sensor_id, name: sensor.alias })}
-                            className="relative bg-[#161821] rounded-lg p-5 border border-cyber-border/10 flex flex-col items-center justify-center overflow-hidden hover:border-cyber-border/40 transition-colors group cursor-pointer"
+                            className="relative bg-[#161821] rounded-lg p-2 border border-cyber-border/10 flex flex-col items-center justify-center overflow-hidden hover:border-cyber-border/40 transition-colors group cursor-pointer"
                         >
                             <div className={`absolute -inset-4 bg-gradient-to-r from-transparent via-${color.replace('text-', '')}/5 to-transparent opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500`} />
 
                             {!sensor.is_active && (
                                 <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center backdrop-blur-[1px] pointer-events-none">
                                     <button
-                                        className="text-red-500 font-bold border border-red-500/50 bg-red-500/10 px-3 py-1 rounded text-sm tracking-widest uppercase pointer-events-auto hover:bg-red-500/20 hover:scale-105 transition-all"
+                                        className="text-red-500 font-bold border border-red-500/50 bg-red-500/10 px-2 py-0.5 rounded text-xs tracking-widest uppercase pointer-events-auto hover:bg-red-500/20 hover:scale-105 transition-all"
                                         onClick={(e) => { e.stopPropagation(); setActiveConfigSensor(sensor); }}
                                     >
                                         {t('paused')}
@@ -77,12 +77,12 @@ export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashb
 
                             <div className={`z-10 flex flex-col items-center w-full ${!sensor.is_active ? 'opacity-30' : ''}`}>
                                 <div className="flex w-full justify-between items-center mb-1">
-                                    <IconNode className={`w-5 h-5 ${color}`} />
+                                    <IconNode className={`w-3.5 h-3.5 ${color}`} />
                                     <button
-                                        className="p-1 hover:bg-white/10 rounded transition-colors text-gray-500 hover:text-white"
+                                        className="p-0.5 hover:bg-white/10 rounded transition-colors text-gray-500 hover:text-white"
                                         onClick={(e) => { e.stopPropagation(); setActiveConfigSensor(sensor); }}
                                     >
-                                        <Settings className="w-4 h-4" />
+                                        <Settings className="w-3 h-3" />
                                     </button>
                                 </div>
                                 <div className="relative w-full">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Cloud, Wind, Droplets, Sun, ChevronRight } from 'lucide-react';
+import { Cloud, Wind, Droplets, Sun } from 'lucide-react';
 import { smartFarmApi } from '../api/client';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -22,8 +22,12 @@ interface WeatherInfo {
     timestamp: string;
 }
 
-const WeatherWidget: React.FC = () => {
-    const { t, lang } = useLanguage();
+interface WeatherWidgetProps {
+    compact?: boolean;
+}
+
+const WeatherWidget: React.FC<WeatherWidgetProps> = ({ compact = false }) => {
+    const { t } = useLanguage();
     const [kmaWeather, setKmaWeather] = useState<WeatherInfo | null>(null);
     const [farmWeather, setFarmWeather] = useState<WeatherInfo | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -66,10 +70,10 @@ const WeatherWidget: React.FC = () => {
     const WeatherCard = ({ title, data, isKma = false }: { title: string, data: WeatherInfo | null, isKma?: boolean }) => {
         if (!data) {
             return (
-                <div className={`p-4 rounded-xl border flex flex-col items-center justify-center min-h-[160px] 
+                <div className={`p-3 rounded-lg border flex flex-col items-center justify-center min-h-[80px]
           ${isKma ? 'bg-cyber-surface/50 border-cyber-border' : 'bg-neon-blue/5 border-neon-blue/30'}`}>
-                    <h4 className="text-gray-400 mb-2">{title}</h4>
-                    <span className="text-sm text-gray-500">{t('noData')}</span>
+                    <h4 className="text-gray-400 mb-1 text-xs">{title}</h4>
+                    <span className="text-xs text-gray-500">{t('noData')}</span>
                 </div>
             );
         }
@@ -77,19 +81,20 @@ const WeatherWidget: React.FC = () => {
         const tColor = isKma ? 'text-neon-blue' : 'text-neon-green';
 
         return (
-            <div className={`p-4 rounded-xl border flex flex-col relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_15px_rgba(0,0,0,0.5)] 
-        ${isKma ? 'bg-cyber-surface border-cyber-border/80' : 'bg-cyber-surface border-neon-green/30'}`}>
+            <div className={`rounded-lg border flex flex-col relative overflow-hidden transition-all duration-300
+        ${isKma ? 'bg-cyber-surface border-cyber-border/80' : 'bg-cyber-surface border-neon-green/30'}
+        ${compact ? 'p-3' : 'p-4'}`}>
 
-                {/* Decorative elements */}
-                <div className={`absolute top-0 left-0 w-full h-1 opacity-50 ${isKma ? 'bg-gradient-to-r from-neon-blue to-transparent' : 'bg-gradient-to-r from-neon-green to-transparent'}`} />
-                <div className="flex justify-between items-center mb-4">
-                    <h4 className={`font-semibold tracking-wider flex items-center gap-3 ${isKma ? 'text-gray-300' : 'text-neon-green glow-text-green'}`}>
+                {/* Decorative top bar */}
+                <div className={`absolute top-0 left-0 w-full h-0.5 opacity-50 ${isKma ? 'bg-gradient-to-r from-neon-blue to-transparent' : 'bg-gradient-to-r from-neon-green to-transparent'}`} />
+                <div className={`flex justify-between items-center ${compact ? 'mb-2' : 'mb-4'}`}>
+                    <h4 className={`font-semibold tracking-wider flex items-center gap-2 text-xs ${isKma ? 'text-gray-300' : 'text-neon-green glow-text-green'}`}>
                         {title}
                         {isKma && (
                             <select
                                 value={hoursAhead}
                                 onChange={(e) => setHoursAhead(Number(e.target.value))}
-                                className="bg-black/50 border border-neon-blue/30 text-neon-blue text-xs rounded px-2 py-0.5 outline-none cursor-pointer focus:border-neon-blue ml-2"
+                                className="bg-black/50 border border-neon-blue/30 text-neon-blue text-xs rounded px-1.5 py-0.5 outline-none cursor-pointer focus:border-neon-blue ml-1"
                             >
                                 <option value={0}>{t('currentNow')}</option>
                                 <option value={1}>{t('forecast1h')}</option>
@@ -103,51 +108,48 @@ const WeatherWidget: React.FC = () => {
                     </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg bg-black/40 ${isKma ? 'text-neon-blue' : 'text-neon-green'}`}>
-                            <Cloud className="w-5 h-5" />
+                <div className={`grid gap-2 ${compact ? 'grid-cols-4' : 'grid-cols-2 gap-4'}`}>
+                    <div className="flex items-center gap-1.5">
+                        <div className={`p-1 rounded bg-black/40 ${isKma ? 'text-neon-blue' : 'text-neon-green'}`}>
+                            <Cloud className="w-4 h-4" />
                         </div>
                         <div>
-                            <div className="text-xs text-gray-400 uppercase">Temp</div>
-                            <div className={`text-lg font-bold ${tColor}`}>
+                            <div className="text-[10px] text-gray-400 uppercase">Temp</div>
+                            <div className={`text-sm font-bold ${tColor}`}>
                                 {data.temperature !== null ? `${data.temperature.toFixed(1)}°C` : '--'}
                             </div>
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-black/40 text-blue-400">
-                            <Droplets className="w-5 h-5" />
+                    <div className="flex items-center gap-1.5">
+                        <div className="p-1 rounded bg-black/40 text-blue-400">
+                            <Droplets className="w-4 h-4" />
                         </div>
                         <div>
-                            <div className="text-xs text-gray-400 uppercase">Humidity</div>
-                            <div className="text-lg font-bold text-gray-200">
+                            <div className="text-[10px] text-gray-400 uppercase">Hum</div>
+                            <div className="text-sm font-bold text-gray-200">
                                 {data.humidity !== null ? `${data.humidity.toFixed(1)}%` : '--'}
                             </div>
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-black/40 text-gray-300">
-                            <Wind className="w-5 h-5" />
+                    <div className="flex items-center gap-1.5">
+                        <div className="p-1 rounded bg-black/40 text-gray-300">
+                            <Wind className="w-4 h-4" />
                         </div>
                         <div>
-                            <div className="text-xs text-gray-400 uppercase">Wind</div>
-                            <div className="text-sm font-medium text-gray-200 flex items-center gap-1">
+                            <div className="text-[10px] text-gray-400 uppercase">Wind</div>
+                            <div className="text-xs font-medium text-gray-200">
                                 {data.wind_speed !== null ? `${data.wind_speed} m/s` : '--'}
-                                <span className="text-xs text-gray-500">{data.wind_direction || ''}</span>
+                                <span className="text-gray-500 ml-1">{data.wind_direction || ''}</span>
                             </div>
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-black/40 text-yellow-500">
-                            <Sun className="w-5 h-5" />
+                    <div className="flex items-center gap-1.5">
+                        <div className="p-1 rounded bg-black/40 text-yellow-500">
+                            <Sun className="w-4 h-4" />
                         </div>
                         <div>
-                            <div className="text-xs text-gray-400 uppercase">{isKma ? 'Rainfall' : 'Solar Rad'}</div>
-                            <div className="text-sm font-medium text-gray-200">
+                            <div className="text-[10px] text-gray-400 uppercase">{isKma ? 'Rain' : 'Solar'}</div>
+                            <div className="text-xs font-medium text-gray-200">
                                 {isKma
                                     ? (data.rainfall !== null ? `${data.rainfall} mm` : '--')
                                     : (data.solar_radiation !== null ? `${data.solar_radiation} W/m²` : '--')}
@@ -160,29 +162,15 @@ const WeatherWidget: React.FC = () => {
     };
 
     return (
-        <div className="w-full mb-8">
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-white tracking-wide border-l-4 border-neon-blue pl-4 mb-1">
-                        {t('externalWeather')}
-                    </h2>
-                    <p className="text-gray-400 text-sm">{lang === 'ko' ? '실시간 기상 데이터 및 예보' : 'Real-time macro environmental data & predictions'}</p>
-                </div>
-                {!isLoading && (
-                    <button onClick={fetchWeather} className="text-xs text-neon-blue hover:text-white transition flex items-center gap-1 bg-[#1a1c23] border border-cyber-border/40 px-3 py-1.5 rounded-md hover:border-neon-blue">
-                        Refresh <ChevronRight className="w-3 h-3" />
-                    </button>
-                )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+        <div className="w-full">
+            <div className={`grid gap-3 ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} relative`}>
                 {isLoading && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-xl">
-                        <div className="w-8 h-8 border-4 border-neon-blue border-t-transparent rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-lg">
+                        <div className="w-6 h-6 border-4 border-neon-blue border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 )}
-                <WeatherCard title={hoursAhead > 0 ? `KMA Forecast` : "KMA Observation"} data={kmaWeather} isKma={true} />
-                <WeatherCard title="Farm Station (자체 기상대)" data={farmWeather} isKma={false} />
+                <WeatherCard title={hoursAhead > 0 ? `${t('kmaWeather')} ${t('forecast1h').replace('1h', hoursAhead + 'h')}` : t('kmaWeather')} data={kmaWeather} isKma={true} />
+                <WeatherCard title={t('farmWeather')} data={farmWeather} isKma={false} />
             </div>
         </div>
     );
