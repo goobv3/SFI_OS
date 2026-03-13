@@ -93,13 +93,13 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
-            <div className="bg-[#1a1c23] border border-gray-700 rounded-xl max-w-5xl w-full p-6 relative shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto overflow-x-hidden">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-50 bg-[#1a1c23]/80 p-1 rounded-full">
-                    <X className="w-6 h-6" />
+            <div className="bg-[#1a1c23] border border-gray-700 rounded-xl max-w-4xl w-full p-4 relative shadow-2xl flex flex-col max-h-[80vh] overflow-y-auto overflow-x-hidden">
+                <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors z-50 bg-[#1a1c23]/80 p-1 rounded-full">
+                    <X className="w-5 h-5" />
                 </button>
 
-                <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                    <h3 className="text-xl font-bold text-white tracking-wide border-l-4 border-neon-blue pl-3">
+                <div className="flex justify-between items-center mb-3 flex-shrink-0">
+                    <h3 className="text-base font-bold text-white tracking-wide border-l-4 border-neon-blue pl-3">
                         {titleName} <span className="text-neon-blue font-light">History</span>
                     </h3>
 
@@ -121,7 +121,7 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
                 </div>
 
                 {/* Range Picker Controls */}
-                <div className="flex flex-wrap items-center gap-4 mb-6 bg-cyber-bg/50 p-4 rounded-lg border border-gray-800 flex-shrink-0 relative">
+                <div className="flex flex-wrap items-center gap-3 mb-4 bg-cyber-bg/50 p-3 rounded-lg border border-gray-800 flex-shrink-0 relative">
                     <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-neon-blue" />
                         <button
@@ -204,7 +204,7 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
                 </div>
 
                 {/* Chart Area */}
-                <div className="flex-1 w-full flex flex-col items-center justify-center p-2 rounded-lg min-h-[400px]">
+                <div className="flex-1 w-full flex flex-col items-center justify-center p-1 rounded-lg min-h-[280px]">
                     {loading ? (
                         <div className="w-full h-full flex flex-col items-center justify-center gap-4">
                             <div className="w-8 h-8 border-2 border-neon-blue border-t-transparent rounded-full animate-spin"></div>
@@ -213,9 +213,9 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
                     ) : data.length === 0 ? (
                         <div className="w-full h-[350px] flex items-center justify-center text-gray-500">No data available for this range.</div>
                     ) : (
-                        <div className="w-full relative h-[400px] pb-5">
+                        <div className="w-full relative h-[300px] pb-4">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data} margin={{ top: 20, right: 40, bottom: 40, left: 20 }}>
+                                <LineChart data={data} margin={{ top: 10, right: 30, bottom: 30, left: 10 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#2a2c33" vertical={false} />
                                     <XAxis
                                         dataKey="time"

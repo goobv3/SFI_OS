@@ -117,7 +117,7 @@ export default function SensorGauge({
     const thresholdData = buildThresholdData();
 
     return (
-        <div className="flex flex-col items-center justify-center relative w-full h-[150px]">
+        <div className="flex flex-col items-center justify-center relative w-full h-[110px]">
             {/* Title at the top */}
             <div className="absolute top-0 w-full flex justify-center z-10 pointer-events-none">
                 <span className="text-[11px] font-bold text-gray-500 tracking-widest uppercase truncate px-2">{title}</span>
@@ -171,16 +171,16 @@ export default function SensorGauge({
 
             {/* Value placed securely in the hollow center of the gauge */}
             <div className="absolute flex flex-col items-center pointer-events-none" style={{ bottom: '10%' }}>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline gap-0.5">
                     <span
-                        className={`text-2xl font-bold tracking-tighter ${statusColor === '#EF4444' ? 'text-red-400 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
+                        className={`text-lg font-bold tracking-tighter ${statusColor === '#EF4444' ? 'text-red-400 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
                             statusColor === '#F59E0B' ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' :
                                 'text-neon-blue drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]'
                             }`}
                     >
                         {value.toFixed(1)}
                     </span>
-                    <span className="text-sm text-gray-500 font-medium">{unit}</span>
+                    <span className="text-xs text-gray-500 font-medium">{unit}</span>
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-widest leading-none mt-1 ${statusColor === '#EF4444' ? 'text-red-500' :
                     statusColor === '#F59E0B' ? 'text-amber-500' :

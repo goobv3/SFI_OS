@@ -371,22 +371,22 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 text-gray-200">
-            <div className="bg-[#12141a] border border-cyber-border/40 rounded-xl max-w-6xl w-full h-[85vh] flex flex-col relative shadow-2xl overflow-hidden">
+            <div className="bg-[#12141a] border border-cyber-border/40 rounded-xl max-w-5xl w-full h-[82vh] flex flex-col relative shadow-2xl overflow-hidden">
                 {/* Header */}
-                <div className="h-16 flex items-center justify-between px-6 border-b border-cyber-border/20 bg-black/40 shrink-0">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-xl font-bold text-white tracking-widest flex items-center gap-2">
-                            <Settings className="w-5 h-5 text-neon-blue" />
+                <div className="h-12 flex items-center justify-between px-4 border-b border-cyber-border/20 bg-black/40 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-base font-bold text-white tracking-widest flex items-center gap-2">
+                            <Settings className="w-4 h-4 text-neon-blue" />
                         {t('sysConfig')}
                         </h2>
                         {isDirty && (
                             <div className="flex items-center gap-2 ml-4 animate-fade-in">
-                                <span className="text-amber-400 text-sm font-semibold tracking-wide mr-2">{t('unsavedChanges')}</span>
-                                <button onClick={handleCancel} className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-1.5 px-4 rounded transition">
+                                <span className="text-amber-400 text-xs font-semibold tracking-wide mr-1">{t('unsavedChanges')}</span>
+                                <button onClick={handleCancel} className="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-1 px-3 rounded transition">
                                     {t('cancel')}
                                 </button>
-                                <button onClick={handleSaveAll} className="bg-neon-blue hover:bg-blue-400 text-black shadow-[0_0_10px_rgba(0,240,255,0.4)] text-sm font-bold py-1.5 px-4 rounded transition flex items-center gap-1">
-                                    <Save className="w-4 h-4" /> {t('saveOrdering')}
+                                <button onClick={handleSaveAll} className="bg-neon-blue hover:bg-blue-400 text-black shadow-[0_0_10px_rgba(0,240,255,0.4)] text-xs font-bold py-1 px-3 rounded transition flex items-center gap-1">
+                                    <Save className="w-3 h-3" /> {t('saveOrdering')}
                                 </button>
                             </div>
                         )}
@@ -403,7 +403,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                         }}
                         className="text-gray-400 hover:text-white transition-colors"
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -413,13 +413,13 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                     <div className="w-1/3 border-r border-cyber-border/20 bg-[#161821] flex flex-col">
 
                         {/* Inbox Toggle Button */}
-                        <div className="p-4 border-b border-cyber-border/20 bg-[#1c1e28]">
+                        <div className="p-3 border-b border-cyber-border/20 bg-[#1c1e28]">
                             <button
                                 onClick={() => setViewMode('inbox')}
-                                className={`w-full flex items-center justify-between p-3 rounded-lg border transition ${viewMode === 'inbox' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 font-bold tracking-wide shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-black/40 border-gray-700 text-gray-400 hover:bg-white/5'}`}
+                                className={`w-full flex items-center justify-between p-2.5 rounded-lg border transition text-sm ${viewMode === 'inbox' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 font-bold tracking-wide shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-black/40 border-gray-700 text-gray-400 hover:bg-white/5'}`}
                             >
                                 <div className="flex items-center gap-2">
-                                    <Inbox className="w-5 h-5" />
+                                    <Inbox className="w-4 h-4" />
                                     <span>{t('discoveryInbox')}</span>
                                 </div>
                                 {discoveredDevices.length > 0 && (
@@ -431,13 +431,13 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                         </div>
 
                         {/* House Creation */}
-                        <div className="p-4 border-b border-cyber-border/10">
-                                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('addLocation')}</h3>
+                        <div className="p-3 border-b border-cyber-border/10">
+                                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('addLocation')}</h3>
                             <div className="space-y-2">
                                 <input
                                     type="text" placeholder={t('houseIdPlaceholder')}
                                     value={newHouseId} onChange={e => setNewHouseId(e.target.value)}
-                                    className="w-full bg-black/50 border border-gray-700 rounded px-3 py-1.5 text-sm focus:border-neon-blue outline-none"
+                                    className="w-full bg-black/50 border border-gray-700 rounded px-2 py-1 text-xs focus:border-neon-blue outline-none"
                                 />
                                 <input
                                     type="text" placeholder={t('houseNamePlaceholder')}
