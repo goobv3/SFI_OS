@@ -1,5 +1,6 @@
 import { Home, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface HouseSelectorProps {
     houses: string[];
@@ -8,12 +9,13 @@ interface HouseSelectorProps {
 }
 
 export default function HouseSelector({ houses, selectedHouse, onSelectHouse }: HouseSelectorProps) {
+    const { t } = useLanguage();
     return (
         <div className="bg-cyber-surface/80 rounded-xl border border-cyber-border/30 overflow-hidden shadow-lg backdrop-blur-sm">
             <div className="p-4 border-b border-cyber-border/30 bg-black/20">
                 <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <Home className="w-4 h-4 text-neon-blue" />
-                    Locations
+                    {t('locations')}
                 </h2>
             </div>
             <nav className="p-2 space-y-1">

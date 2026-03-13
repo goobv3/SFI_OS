@@ -4,6 +4,7 @@ import { smartFarmApi } from '../api/client';
 import HistoryChart from './HistoryChart';
 import SensorGauge from './SensorGauge';
 import SensorConfigModal from './SensorConfigModal';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface SensorDashboardProps {
     houseId: string;
@@ -11,24 +12,18 @@ interface SensorDashboardProps {
 }
 
 export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashboardProps) {
+    const { t } = useLanguage();
     const [sensors, setSensors] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-
-    // History Modal State
     const [activeSensorHistory, setActiveSensorHistory] = useState<{ id: string, name: string } | null>(null);
-
-    // Config Modal State
     const [activeConfigSensor, setActiveConfigSensor] = useState<any | null>(null);
 
     const fetchSensors = async () => {
         setLoading(true);
         try {
             const data = await smartFarmApi.getHouseDevices(houseId);
-            // 백엔드에서 value(최신값)도 함께 내려준다고 가정하거나, 현재는 메타데이터를 기반으로 생성
-            // TODO: 실시간 읽기값(value)는 추가 API가 필요하지만, 데모 목적으로 랜더 스켈레톤만 동기화
             setSensors(data.sensors.map((s: any) => ({
                 ...s,
-                // 임의의 Mock value 처리 (실제로는 GET /sensors/latest 등을 통해 얻어야함)
                 value: s.type.includes('temp') ? 22 + Math.random() * 5 :
                     s.type.includes('hum') ? 50 + Math.random() * 20 :
                         Math.random() * 100
@@ -45,16 +40,16 @@ export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashb
     }, [houseId, refreshTrigger]);
 
     const getIconAndColor = (type: string) => {
-        const t = type.toLowerCase();
-        if (t.includes('temp')) return { icon: Thermometer, color: 'text-neon-orange', glow: 'glow-text-orange' };
-        if (t.includes('hum')) return { icon: Droplets, color: 'text-neon-blue', glow: 'glow-text-blue' };
-        if (t.includes('solar') || t.includes('rad')) return { icon: Sun, color: 'text-yellow-400', glow: 'glow-text-yellow' };
-        if (t.includes('wind')) return { icon: Wind, color: 'text-gray-300', glow: '' };
+        const t2 = type.toLowerCase();
+        if (t2.includes('temp')) return { icon: Thermometer, color: 'text-neon-orange', glow: 'glow-text-orange' };
+        if (t2.includes('hum')) return { icon: Droplets, color: 'text-neon-blue', glow: 'glow-text-blue' };
+        if (t2.includes('solar') || t2.includes('rad')) return { icon: Sun, color: 'text-yellow-400', glow: 'glow-text-yellow' };
+        if (t2.includes('wind')) return { icon: Wind, color: 'text-gray-300', glow: '' };
         return { icon: Activity, color: 'text-gray-400', glow: '' };
     };
 
-    if (loading) return <div className="text-neon-blue animate-pulse">Loading sensors...</div>;
-    if (!sensors.length) return <div className="text-gray-500">No sensors registered in this house.</div>;
+    if (loading) return <div className="text-neon-blue animate-pulse">{t('loadingSensors')}</div>;
+    if (!sensors.length) return <div className="text-gray-500">{t('noSensors')}</div>;
 
     return (
         <>
@@ -73,12 +68,9 @@ export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashb
                                 <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center backdrop-blur-[1px] pointer-events-none">
                                     <button
                                         className="text-red-500 font-bold border border-red-500/50 bg-red-500/10 px-3 py-1 rounded text-sm tracking-widest uppercase pointer-events-auto hover:bg-red-500/20 hover:scale-105 transition-all"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setActiveConfigSensor(sensor);
-                                        }}
+                                        onClick={(e) => { e.stopPropagation(); setActiveConfigSensor(sensor); }}
                                     >
-                                        Paused
+                                        {t('paused')}
                                     </button>
                                 </div>
                             )}
@@ -88,10 +80,7 @@ export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashb
                                     <IconNode className={`w-5 h-5 ${color}`} />
                                     <button
                                         className="p-1 hover:bg-white/10 rounded transition-colors text-gray-500 hover:text-white"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setActiveConfigSensor(sensor);
-                                        }}
+                                        onClick={(e) => { e.stopPropagation(); setActiveConfigSensor(sensor); }}
                                     >
                                         <Settings className="w-4 h-4" />
                                     </button>
@@ -108,7 +97,6 @@ export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashb
                                         min={sensor.type.includes('temp') ? -10 : 0}
                                         max={sensor.type.includes('temp') ? 50 : 100}
                                     />
-                                    {/* Overlay block to catch clicks on gauge when paused to prevent opening history */}
                                     {!sensor.is_active && <div className="absolute inset-0 z-30 pointer-events-none" />}
                                 </div>
                             </div>
@@ -129,10 +117,7 @@ export default function SensorDashboard({ houseId, refreshTrigger }: SensorDashb
                 <SensorConfigModal
                     sensor={activeConfigSensor}
                     onClose={() => setActiveConfigSensor(null)}
-                    onSave={() => {
-                        setActiveConfigSensor(null);
-                        fetchSensors(); // Reload the thresholds and orders
-                    }}
+                    onSave={() => { setActiveConfigSensor(null); fetchSensors(); }}
                 />
             )}
         </>

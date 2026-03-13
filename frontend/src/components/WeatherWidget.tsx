@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Cloud, Wind, Droplets, Sun, ChevronRight } from 'lucide-react';
 import { smartFarmApi } from '../api/client';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // ---------------------------------------------------------
 // 실시간 날씨 위젯 컴포넌트 (Weather Widget Component)
@@ -22,6 +23,7 @@ interface WeatherInfo {
 }
 
 const WeatherWidget: React.FC = () => {
+    const { t } = useLanguage();
     const [kmaWeather, setKmaWeather] = useState<WeatherInfo | null>(null);
     const [farmWeather, setFarmWeather] = useState<WeatherInfo | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +69,7 @@ const WeatherWidget: React.FC = () => {
                 <div className={`p-4 rounded-xl border flex flex-col items-center justify-center min-h-[160px] 
           ${isKma ? 'bg-cyber-surface/50 border-cyber-border' : 'bg-neon-blue/5 border-neon-blue/30'}`}>
                     <h4 className="text-gray-400 mb-2">{title}</h4>
-                    <span className="text-sm text-gray-500">No Data Available</span>
+                    <span className="text-sm text-gray-500">{t('noData')}</span>
                 </div>
             );
         }
@@ -89,10 +91,10 @@ const WeatherWidget: React.FC = () => {
                                 onChange={(e) => setHoursAhead(Number(e.target.value))}
                                 className="bg-black/50 border border-neon-blue/30 text-neon-blue text-xs rounded px-2 py-0.5 outline-none cursor-pointer focus:border-neon-blue ml-2"
                             >
-                                <option value={0}>Current (Now)</option>
-                                <option value={1}>1h Forecast</option>
-                                <option value={3}>3h Forecast</option>
-                                <option value={6}>6h Forecast</option>
+                                <option value={0}>{t('currentNow')}</option>
+                                <option value={1}>{t('forecast1h')}</option>
+                                <option value={3}>{t('forecast3h')}</option>
+                                <option value={6}>{t('forecast6h')}</option>
                             </select>
                         )}
                     </h4>
