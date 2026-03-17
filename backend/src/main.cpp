@@ -17,6 +17,8 @@
 #include "core/Database.h"
 #include "core/MqttClient.h"
 #include "managers/SensorManager.h"
+#include "managers/WeatherManager.h" // [추가] 기상 데이터 관리를 위한 헤더
+
 
 int main() {
     std::cout << "=======================================================" << std::endl;
@@ -60,6 +62,20 @@ int main() {
                 }
             }
         );
+
+        // --- [추가] 로컬 기상대(FARM) MQTT 구독 ---
+        // 'smartfarm/weather/farm' 토픽으로 들어오는 JSON 데이터를 수신합니다.
+        Core::MqttClient::getInstance().subscribe(
+            "smartfarm/weather/farm",
+            [](const std::string& topic, const std::string& payload) {
+                try {
+                    auto data = nlohmann::json::parse(payload);
+                    Managers::WeatherManager::getInstance().recordFarmWeather(data);
+                } catch (const std::exception& e) {
+                    std::cerr << "[MQTT] 기상 데이터 파싱 오류: " << e.what() << std::endl;
+                }
+            }
+        );
     } else {
         std::cout << "[Boot] ⚠️ MQTT 연결 실패 - 계속 진행합니다." << std::endl;
     }
@@ -67,11 +83,10 @@ int main() {
     // --- 3. Crow 웹서버 조립 (CORSHandler 미들웨어 포함) ---
     crow::App<crow::CORSHandler> app;
 
-    // CORS 전역 정책: 모든 출처·메서드·헤더 허용
+    // CORS 전역 정책: 모든 출처·헤더 허용
     auto& cors = app.get_middleware<crow::CORSHandler>();
     cors.global()
         .origin("*")
-        .methods("GET,POST,PUT,DELETE,OPTIONS"_method)
         .headers("Content-Type, Authorization")
         .max_age(86400);
 

@@ -1,6 +1,7 @@
 #include "WeatherManager.h"
 #include "../core/Database.h"
 #include <string>
+#include <iostream> // [추가] std::cerr 사용을 위해 필요
 
 namespace Managers {
 WeatherManager& WeatherManager::getInstance() {
@@ -35,4 +36,27 @@ nlohmann::json WeatherManager::getLatestWeather(int hours_ahead) {
     
     return res;
 }
+
+void WeatherManager::recordFarmWeather(const nlohmann::json& data) {
+    auto& db = Core::Database::getInstance();
+    
+    // --- [로직] 로컬 기상대 데이터 저장 ---
+    // MQTT를 통해 들어온 JSON 데이터를 파싱하여 weather_data 테이블에 'FARM' 소스로 저장합니다.
+    try {
+        std::string wind_speed = data.contains("wind_speed") ? std::to_string(data["wind_speed"].get<double>()) : "NULL";
+        std::string wind_dir   = data.contains("wind_direction") ? "'" + data["wind_direction"].get<std::string>() + "'" : "NULL";
+        std::string rainfall   = data.contains("rainfall") ? std::to_string(data["rainfall"].get<double>()) : "NULL";
+        std::string solar      = data.contains("solar_radiation") ? std::to_string(data["solar_radiation"].get<double>()) : "NULL";
+        std::string temp       = data.contains("temperature") ? std::to_string(data["temperature"].get<double>()) : "NULL";
+        std::string hum        = data.contains("humidity") ? std::to_string(data["humidity"].get<double>()) : "NULL";
+
+        std::string q = "INSERT INTO weather_data (source, forecast_offset, wind_speed, wind_direction, rainfall, solar_radiation, temperature, humidity) "
+                        "VALUES ('FARM', 0, " + wind_speed + ", " + wind_dir + ", " + rainfall + ", " + solar + ", " + temp + ", " + hum + ")";
+        
+        db.execute(q);
+    } catch (const std::exception& e) {
+        std::cerr << "[WeatherManager] 로컬 기상대 데이터 처리 오류: " << e.what() << std::endl;
+    }
+}
+
 }

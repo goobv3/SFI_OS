@@ -25,7 +25,9 @@ void SensorManager::processIncomingData(const std::string& sensor_id, double val
     
     std::string house_id = res[0]["house_id"];
     
-    std::string insertData = "INSERT INTO sensor_data (sensor_id, house_id, value) VALUES ('" + 
+    // --- [수정] 테이블 이름 불일치 해결: sensor_data -> sensors ---
+    // database/init.sql 정의에 따라 실제 테이블 이름인 'sensors'를 사용해야 합니다.
+    std::string insertData = "INSERT INTO sensors (sensor_id, house_id, value) VALUES ('" + 
                              sensor_id + "', '" + house_id + "', " + std::to_string(value) + ")";
     db.execute(insertData);
     

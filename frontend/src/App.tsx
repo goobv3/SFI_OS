@@ -25,11 +25,12 @@ function App() {
   const fetchHouses = async () => {
     try {
       const data = await smartFarmApi.getHouses();
-      setHouses(data);
+      const housesData = Array.isArray(data) ? data : [];
+      setHouses(housesData);
       setRefreshTrigger(prev => prev + 1);
-      if (data.length > 0 && !selectedHouseId) {
-        setSelectedHouseId(data[0].house_id);
-      } else if (data.length === 0) {
+      if (housesData.length > 0 && !selectedHouseId) {
+        setSelectedHouseId(housesData[0].house_id);
+      } else if (housesData.length === 0) {
         setSelectedHouseId('');
       }
     } catch (e) { console.error(e); }

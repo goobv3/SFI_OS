@@ -18,22 +18,17 @@ namespace API {
 
 void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
 
-    // JSON 응답을 CORS 헤더와 함께 생성하는 헬퍼 람다
+    // JSON 응답을 위한 헬퍼 람다 (CORS 헤더는 CORSHandler가 처리하므로 최소화)
     auto jsonResponse = [](const nlohmann::json& data, int status = 200) {
         crow::response res(status, data.dump());
         res.add_header("Content-Type", "application/json; charset=utf-8");
-        res.add_header("Access-Control-Allow-Origin", "*");
-        res.add_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        res.add_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
         return res;
     };
 
     // --- OPTIONS 사전 요청 처리 (CORS Preflight) ---
-    // Crow의 <path> 파라미터는 '/'를 포함한 경로를 매칭하지 못하므로
-    // 메타데이터 경로별로 명시적 OPTIONS 핸들러를 등록합니다.
-    CROW_ROUTE(app, "/api/<path>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
-        return jsonResponse({});
-    });
+    // CORSHandler가 미들웨어로 등록되어 있으므로, 개별 라우트에서는 메서드만 허용하면 됩니다.
+    // 만약 OPTIONS 에러가 지속된다면 아래와 같이 "OPTIONS"_method를 명시적으로 추가합니다.
+
     CROW_ROUTE(app, "/api/metadata/houses").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
         return jsonResponse({});
     });
