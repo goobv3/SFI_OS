@@ -102,12 +102,15 @@ async def main():
             # 실황 데이터 가져오기
             obs = await fetcher.fetch_current()
             if obs and (obs['temperature'] is not None):
-                cursor.execute(
-                    "INSERT INTO weather_data (source, forecast_offset, wind_speed, wind_direction, rainfall, temperature, humidity, timestamp) "
-                    "VALUES ('KMA', 0, %s, %s, %s, %s, %s, %s)",
-                    (obs.get('wind_speed'), obs.get('wind_direction'), obs.get('rainfall'), obs.get('temperature'), obs.get('humidity'), datetime.now())
-                )
-                print(f"  -> 데이터 저장 완료: 기온 {obs['temperature']}°C / 습도 {obs['humidity']}%")
+                # 대시보드의 다양한 예보 시점(0:현재, 1, 3, 6시간 후)을 위해 데이터 저장
+                # (현 API는 예보 기능이 없으므로 현재 값을 모든 시점에 채워넣음)
+                for offset in [0, 1, 3, 6]:
+                    cursor.execute(
+                        "INSERT INTO weather_data (source, forecast_offset, wind_speed, wind_direction, rainfall, temperature, humidity, timestamp) "
+                        "VALUES ('KMA', %s, %s, %s, %s, %s, %s, %s)",
+                        (offset, obs.get('wind_speed'), obs.get('wind_direction'), obs.get('rainfall'), obs.get('temperature'), obs.get('humidity'), datetime.now())
+                    )
+                print(f"  -> 데이터 저장 완료 (Offsets: 0, 1, 3, 6): 기온 {obs['temperature']}°C / 습도 {obs['humidity']}%")
             else:
                 print("  -> 유효한 데이터를 가져오지 못했습니다.")
             
