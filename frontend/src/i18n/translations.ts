@@ -50,6 +50,11 @@ const translations = {
     forecast3h:         '3시간 후 예보',
     forecast6h:         '6시간 후 예보',
     forecastTemplate:   '{h}시간 후 예보',
+    sunny:              '맑음',
+    cloudy:             '구름조금',
+    overcast:           '흐림',
+    rainy:              '비',
+    snowy:              '눈',
 
     // === 알람 토스트 ===
     danger:             '위험',
@@ -194,6 +199,11 @@ const translations = {
     forecast3h:         '3h Forecast',
     forecast6h:         '6h Forecast',
     forecastTemplate:   '{h}h Forecast',
+    sunny:              'Sunny',
+    cloudy:             'Partly Cloudy',
+    overcast:           'Overcast',
+    rainy:              'Rainy',
+    snowy:              'Snowy',
 
     // === Alarm Toast ===
     danger:             'CRITICAL',

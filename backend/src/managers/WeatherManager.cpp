@@ -138,7 +138,10 @@ nlohmann::json WeatherManager::getLiveForecast(int hours_ahead) {
                 res["wind_speed"] = nullptr;
                 res["wind_direction"] = nullptr;
                 res["rainfall"] = nullptr;
+                res["condition"] = "sunny"; // Default
                 
+                int sky = 1;
+                int pty = 0;
                 bool found = false;
                 for (const auto& item : items) {
                     if (item["fcstDate"] == tDate && item["fcstTime"] == tTime) {
@@ -164,8 +167,21 @@ nlohmann::json WeatherManager::getLiveForecast(int hours_ahead) {
                         else if (cat == "WSD") res["wind_speed"] = parseVal(cat, valStr);
                         else if (cat == "VEC") res["wind_direction"] = parseVal(cat, valStr);
                         else if (cat == "RN1") res["rainfall"] = parseVal(cat, valStr);
+                        else if (cat == "SKY") sky = std::stoi(valStr);
+                        else if (cat == "PTY") pty = std::stoi(valStr);
                     }
                 }
+
+                // Condition Mapping
+                if (pty > 0) {
+                    if (pty == 1 || pty == 4 || pty == 5) res["condition"] = "rainy";
+                    else if (pty == 2 || pty == 3 || pty == 6 || pty == 7) res["condition"] = "snowy";
+                } else {
+                    if (sky == 1) res["condition"] = "sunny";
+                    else if (sky == 3) res["condition"] = "cloudy";
+                    else if (sky == 4) res["condition"] = "overcast";
+                }
+
                 if (!found) std::cout << "[WeatherManager] ⚠️ No items found in API result for " << tDate << " " << tTime << std::endl;
                 return found ? res : nullptr;
             } else {

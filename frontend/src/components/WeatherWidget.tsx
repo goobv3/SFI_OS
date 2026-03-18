@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Cloud, Wind, Droplets, Sun } from 'lucide-react';
+import { Cloud, Wind, Droplets, Sun, CloudRain, CloudSnow, CloudLightning, Umbrella } from 'lucide-react';
 import { smartFarmApi } from '../api/client';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -20,6 +20,7 @@ interface WeatherInfo {
     rainfall: number | null;
     solar_radiation: number | null;
     timestamp: string;
+    condition?: string;
 }
 
 interface WeatherWidgetProps {
@@ -189,14 +190,27 @@ const WeatherCard = ({
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="p-1 rounded bg-black/40 text-yellow-500">
-                        <Sun className="w-4 h-4" />
+                    <div className={`p-1 rounded bg-black/40 ${isKma ? (data.condition === 'rainy' ? 'text-blue-400' : 'text-yellow-500') : 'text-yellow-500'}`}>
+                        {isKma && hoursAhead > 0 ? (
+                            <>
+                                {data.condition === 'sunny' && <Sun className="w-4 h-4" />}
+                                {data.condition === 'cloudy' && <Cloud className="w-4 h-4" />}
+                                {data.condition === 'overcast' && <Cloud className="w-4 h-4 text-gray-400" />}
+                                {data.condition === 'rainy' && <Umbrella className="w-4 h-4" />}
+                                {data.condition === 'snowy' && <CloudSnow className="w-4 h-4" />}
+                                {!data.condition && <Sun className="w-4 h-4" />}
+                            </>
+                        ) : (
+                            <Sun className="w-4 h-4" />
+                        )}
                     </div>
                     <div>
-                        <div className="text-[10px] text-gray-400 uppercase">{isKma ? 'Rain' : 'Solar'}</div>
+                        <div className="text-[10px] text-gray-400 uppercase">{isKma && hoursAhead > 0 ? 'Weather' : (isKma ? 'Rain' : 'Solar')}</div>
                         <div className="text-xs font-medium text-gray-200">
-                            {isKma
-                                ? (data.rainfall !== null ? `${data.rainfall} mm` : '--')
+                            {isKma 
+                                ? (hoursAhead > 0 
+                                    ? (data.condition ? t(data.condition) : t('sunny'))
+                                    : (data.rainfall !== null ? `${data.rainfall} mm` : '--'))
                                 : (data.solar_radiation !== null ? `${data.solar_radiation} W/m²` : '--')}
                         </div>
                     </div>
