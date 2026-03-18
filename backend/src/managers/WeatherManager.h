@@ -14,5 +14,7 @@ public:
     void recordFarmWeather(const nlohmann::json& data);
 private:
     WeatherManager() = default;
+    nlohmann::json getLiveForecast(int hours_ahead);
+    std::pair<int, int> convertGrid(double lat, double lon);
 };
 }

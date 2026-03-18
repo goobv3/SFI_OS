@@ -47,6 +47,9 @@ services:
       - DB_PASSWORD=farmsecret
       - DB_NAME=smartfarm
       - MQTT_HOST=mosquitto
+      - KMA_SERVICE_KEY=3b1b77976ce0ca80247d4cd707834cff148c26d257a9b03826dda6829b75f0ad
+      - LAT=37.3390
+      - LON=127.4907
     command: ./build/smartfarm_server
 
   # --- [추가] 기상 데이터 비동기 수집 태스크 (Weather Fetcher) ---
@@ -66,7 +69,8 @@ services:
       - DB_USER=farmuser
       - DB_PASSWORD=farmsecret
       - DB_NAME=smartfarm
-      - KMA_SERVICE_KEY=OJfd9VikT06X3fVYpC9OkQ # [복구] 사용자가 제공한 키를 적용했습니다.
+      - KMA_HUB_AUTH_KEY=OJfd9VikT06X3fVYpC9OkQ
+      - KMA_SERVICE_KEY=3b1b77976ce0ca80247d4cd707834cff148c26d257a9b03826dda6829b75f0ad
     command: >
       sh -c "pip install --no-cache-dir -r requirements.txt && python weather_fetcher.py"
 

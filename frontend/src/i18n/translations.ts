@@ -49,6 +49,7 @@ const translations = {
     forecast1h:         '1시간 후 예보',
     forecast3h:         '3시간 후 예보',
     forecast6h:         '6시간 후 예보',
+    forecastTemplate:   '{h}시간 후 예보',
 
     // === 알람 토스트 ===
     danger:             '위험',
@@ -192,6 +193,7 @@ const translations = {
     forecast1h:         '1h Forecast',
     forecast3h:         '3h Forecast',
     forecast6h:         '6h Forecast',
+    forecastTemplate:   '{h}h Forecast',
 
     // === Alarm Toast ===
     danger:             'CRITICAL',

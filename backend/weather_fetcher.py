@@ -2,14 +2,14 @@ import asyncio
 import os
 import pymysql
 import httpx
+import math
 from datetime import datetime, timedelta
 import time
 
 # --- [설정] 기상청 API 및 DB 연결 정보 ---
-# [복구] 사용자가 제공한 API Hub 전용 키와 위치 정보를 적용했습니다.
-# 위치: 경기도 이천시 백사면 상용리 531-8 (근처 위경도 적용)
-AUTH_KEY = os.getenv("KMA_SERVICE_KEY", "OJfd9VikT06X3fVYpC9OkQ")
-LAT = 37.3390  # 위도
+AUTH_KEY_HUB = os.getenv("KMA_HUB_AUTH_KEY", "OJfd9VikT06X3fVYpC9OkQ")
+AUTH_KEY_DATA = os.getenv("KMA_SERVICE_KEY", "3b1b77976ce0ca80247d4cd707834cff148c26d257a9b03826dda6829b75f0ad")
+LAT = 37.3390  # 위도 (이천시 백사면 근처)
 LON = 127.4907 # 경도
 
 DB_HOST = os.getenv("DB_HOST", "mariadb")
@@ -17,9 +17,47 @@ DB_USER = os.getenv("DB_USER", "farmuser")
 DB_PASS = os.getenv("DB_PASSWORD", "farmsecret")
 DB_NAME = os.getenv("DB_NAME", "smartfarm")
 
+def convert_grid(lat, lon):
+    """
+    위경도를 기상청 격자 좌표(nx, ny)로 변환합니다.
+    """
+    RE = 6371.00877
+    GRID = 5.0
+    SLAT1 = 30.0
+    SLAT2 = 60.0
+    OLON = 126.0
+    OLAT = 38.0
+    XO = 43
+    YO = 136
+
+    DEGRAD = math.pi / 180.0
+    re = RE / GRID
+    slat1 = SLAT1 * DEGRAD
+    slat2 = SLAT2 * DEGRAD
+    olon = OLON * DEGRAD
+    olat = OLAT * DEGRAD
+
+    sn = math.tan(math.pi * 0.25 + slat2 * 0.5) / math.tan(math.pi * 0.25 + slat1 * 0.5)
+    sn = math.log(math.cos(slat1) / math.cos(slat2)) / math.log(sn)
+    sf = math.tan(math.pi * 0.25 + slat1 * 0.5)
+    sf = math.pow(sf, sn) * math.cos(slat1) / sn
+    ro = math.tan(math.pi * 0.25 + olat * 0.5)
+    ro = re * sf / math.pow(ro, sn)
+    
+    ra = math.tan(math.pi * 0.25 + lat * DEGRAD * 0.5)
+    ra = re * sf / math.pow(ra, sn)
+    theta = lon * DEGRAD - olon
+    if theta > math.pi: theta -= 2.0 * math.pi
+    if theta < -math.pi: theta += 2.0 * math.pi
+    theta *= sn
+    
+    nx = math.floor(ra * math.sin(theta) + XO + 0.5)
+    ny = math.floor(ro - ra * math.cos(theta) + YO + 0.5)
+    return nx, ny
+
 class KMAApiHubFetcher:
     """
-    기상청 API Hub (apihub.kma.go.kr) 특정지점 다중요소 API 페처
+    기상청 API Hub (apihub.kma.go.kr) 특정지점 다중요소 API 페처 (실시간 관측 전용)
     """
     def __init__(self, auth_key, lat, lon):
         self.auth_key = auth_key
@@ -27,112 +65,145 @@ class KMAApiHubFetcher:
         self.lon = lon
         self.base_url = "https://apihub.kma.go.kr/api/typ01/url/sfc_nc_var.php"
 
-    def get_kst_now(self):
-        """
-        컨테이너가 UTC인 경우를 대비해 KST(UTC+9) 시간을 계산합니다.
-        """
-        return datetime.now() + timedelta(hours=9)
-
     async def fetch_current(self):
-        """
-        특정 지점의 현재 기상 요소를 가져옵니다.
-        """
-        # [수정] API Hub는 KST 기반이므로 UTC 컨테이너에서도 KST로 요청하도록 보정함
-        kst_now = self.get_kst_now()
-        
-        # 실제 데이터가 업데이트되는 시간을 고려하여 5~10분 전 데이터 요청
-        # (너무 현재 시간 정각이면 데이터가 아직 안 올라왔을 수 있음)
-        query_time = kst_now - timedelta(minutes=10)
+        kst_now = datetime.now() + timedelta(hours=9)
+        query_time = kst_now - timedelta(minutes=15) # 조금 더 여유 있게
         tm = query_time.strftime("%Y%m%d%H%M")
         
+        params = {"tm1": tm, "tm2": tm, "lat": self.lat, "lon": self.lon, "authKey": self.auth_key, "help": 0}
+        async with httpx.AsyncClient() as client:
+            try:
+                res = await client.get(self.base_url, params=params, timeout=15.0)
+                if res.status_code == 200:
+                    lines = [l.strip() for l in res.text.split('\n') if l.strip()]
+                    data_lines = [l for l in lines if not l.startswith('#')]
+                    if not data_lines: data_lines = [l.replace('#7777END', '').strip() for l in lines if l.startswith('#7777END')]
+                    if not data_lines: return None
+                    fields = [f.strip() for f in data_lines[0].split(',')]
+                    result = {"temperature": None, "humidity": None, "wind_speed": None, "wind_direction": None, "rainfall": 0.0}
+                    # tm:0, ta:1, td:2, hm:3, ws:4, rn_15:5, rn_60:6...
+                    if len(fields) > 1: result["temperature"] = float(fields[1])
+                    if len(fields) > 3: result["humidity"] = float(fields[3])
+                    if len(fields) > 4: result["wind_speed"] = float(fields[4])
+                    # [수정] rn_15(15분 강수) 대신 rn_60(60분 강수)를 사용하여 사용자 체감에 맞게 조정
+                    if len(fields) > 6: result["rainfall"] = float(fields[6])
+                    elif len(fields) > 5: result["rainfall"] = float(fields[5])
+                    return result
+            except Exception as e: print(f"[KMA Hub] Error: {e}")
+        return None
+
+class KMAShortTermForecastFetcher:
+    """
+    공공데이터포털 초단기예보 API 페처
+    """
+    def __init__(self, service_key, nx, ny):
+        self.service_key = service_key
+        self.nx = nx
+        self.ny = ny
+        self.base_url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst"
+
+    def parse_fcst_value(self, category, val_str):
+        """
+        기상청 특유의 문자열 포함 측정값(예: "1.0mm", "1mm 미만", "강수없음")을 숫자로 변환합니다.
+        """
+        if category == 'RN1':
+            if '강수없음' in val_str: return 0.0
+            if '미만' in val_str: return 0.1 # "1mm 미만" -> 0.1
+            return float(val_str.replace('mm', '').strip())
+        try:
+            return float(val_str)
+        except:
+            return None
+
+    async def fetch_forecasts(self):
+        kst_now = datetime.now() + timedelta(hours=9)
+        # 초단기 예보는 매시간 45분 발표, 30분에 데이터 생성됨
+        if kst_now.minute < 45:
+            base_time_dt = kst_now - timedelta(hours=1)
+        else:
+            base_time_dt = kst_now
+        
+        base_date = base_date = base_time_dt.strftime("%Y%m%d")
+        base_time = base_time_dt.strftime("%H00")
+        
         params = {
-            "tm1": tm,
-            "tm2": tm,
-            "lat": self.lat,
-            "lon": self.lon,
-            "authKey": self.auth_key,
-            "help": 0
+            "serviceKey": self.service_key,
+            "numOfRows": 100,
+            "pageNo": 1,
+            "dataType": "JSON",
+            "base_date": base_date,
+            "base_time": base_time,
+            "nx": self.nx,
+            "ny": self.ny
         }
         
         async with httpx.AsyncClient() as client:
             try:
                 res = await client.get(self.base_url, params=params, timeout=15.0)
                 if res.status_code == 200:
-                    text = res.text
-                    
-                    # API Hub 응답 파싱
-                    lines = [l.strip() for l in text.split('\n') if l.strip()]
-                    # 데이터 라인은 보통 #으로 시작하지 않거나, #7777END 앞에 데이터가 있음
-                    # help=0 인 경우 #7777END 뒤에 데이터가 오거나 형식이 다를 수 있음
-                    # 실험 결과 sfc_nc_var.php는 데이터 줄이 #으로 시작하지 않는 줄이 데이터임
-                    data_lines = [l for l in lines if not l.startswith('#')]
-                    
-                    if not data_lines:
-                        # #7777END로 시작하는 줄에 데이터가 포함된 경우 처리
-                        data_lines = [l.replace('#7777END', '').strip() for l in lines if l.startswith('#7777END')]
-                    
-                    if not data_lines:
-                        print(f"[KMA Hub] {tm} 시점의 데이터가 유효하지 않습니다. 응답: {text[:50]}...")
-                        return None
+                    data = res.json()
+                    if data['response']['header']['resultCode'] == '00':
+                        items = data['response']['body']['items']['item']
+                        forecasts = {}
                         
-                    fields = [f.strip() for f in data_lines[0].split(',')]
-                    
-                    result = {
-                        "temperature": None,
-                        "humidity": None,
-                        "wind_speed": None,
-                        "wind_direction": None,
-                        "rainfall": 0.0
-                    }
-                    
-                    try:
-                        # tm:0, ta:1, td:2, hm:3, ws:4, rn_15:5...
-                        if len(fields) > 1: result["temperature"] = float(fields[1])
-                        if len(fields) > 3: result["humidity"] = float(fields[3])
-                        if len(fields) > 4: result["wind_speed"] = float(fields[4])
-                        if len(fields) > 5: result["rainfall"] = float(fields[5])
-                    except Exception as e:
-                        print(f"[KMA Hub] 파싱 오류 ({tm}): {e}")
+                        for item in items:
+                            fcst_time_str = item['fcstDate'] + item['fcstTime']
+                            fcst_dt = datetime.strptime(fcst_time_str, "%Y%m%d%H%M")
+                            # 기준 시간(정시)으로부터 몇 시간 뒤인지 계산
+                            ref_dt = base_time_dt.replace(minute=0, second=0, microsecond=0)
+                            offset = int((fcst_dt - ref_dt).total_seconds() // 3600)
+                            
+                            if offset not in [1, 3, 6]: continue
+                            if offset not in forecasts: forecasts[offset] = {}
+                            
+                            category = item['category']
+                            val = self.parse_fcst_value(category, item['fcstValue'])
+                            
+                            if category == 'T1H': forecasts[offset]['temperature'] = val
+                            elif category == 'REH': forecasts[offset]['humidity'] = val
+                            elif category == 'WSD': forecasts[offset]['wind_speed'] = val
+                            elif category == 'VEC': forecasts[offset]['wind_direction'] = val
+                            elif category == 'RN1': forecasts[offset]['rainfall'] = val
                         
-                    return result
-            except Exception as e:
-                print(f"[KMA Hub] 패치 오류: {e}")
+                        return forecasts
+            except Exception as e: print(f"[KMA Forecast] Error: {e}")
         return None
 
 async def main():
-    print("=== 기상청 API Hub 데이터 페처 시작 (UTC 보정 적용) ===")
+    print("=== 기상청 통합 데이터 페처 시작 (관측+예보) ===")
     
-    fetcher = KMAApiHubFetcher(auth_key=AUTH_KEY, lat=LAT, lon=LON)
+    nx, ny = convert_grid(LAT, LON)
+    print(f"위치 격자: nx={nx}, ny={ny}")
+    
+    hub_fetcher = KMAApiHubFetcher(auth_key=AUTH_KEY_HUB, lat=LAT, lon=LON)
+    fcst_fetcher = KMAShortTermForecastFetcher(service_key=AUTH_KEY_DATA, nx=nx, ny=ny)
     
     while True:
         try:
-            kst = fetcher.get_kst_now()
-            print(f"[{kst}] 업데이트 시도 중 (KST 기준 조회)...")
+            kst = datetime.now() + timedelta(hours=9)
+            print(f"[{kst}] 데이터 업데이트 중...")
             
             conn = pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, autocommit=True)
             cursor = conn.cursor()
             
-            obs = await fetcher.fetch_current()
+            # 1. 실시간 관측 (offset 0)
+            obs = await hub_fetcher.fetch_current()
             if obs and (obs['temperature'] is not None):
-                # [참고] 현재 사용중인 '특정지점 다중요소' API는 예보 기능이 없으므로
-                # 대시보드 UI 호환성을 위해 현재 관측값을 예보 오프셋(0, 1, 3, 6)에 모두 저장함.
-                # 실제 예보 정보를 원하실 경우 '단기예보' API 연동이 필요합니다.
-                for offset in [0, 1, 3, 6]:
-                    cursor.execute(
-                        "INSERT INTO weather_data (source, forecast_offset, wind_speed, wind_direction, rainfall, temperature, humidity, timestamp) "
-                        "VALUES ('KMA', %s, %s, %s, %s, %s, %s, %s)",
-                        (offset, obs.get('wind_speed'), obs.get('wind_direction'), obs.get('rainfall'), obs.get('temperature'), obs.get('humidity'), kst)
-                    )
-                print(f"  -> 저장 완료 ({kst}): {obs['temperature']}°C / {obs['humidity']}%")
-            else:
-                print("  -> 유효한 데이터를 수신하지 못했습니다.")
+                cursor.execute(
+                    "INSERT INTO weather_data (source, forecast_offset, wind_speed, wind_direction, rainfall, temperature, humidity, timestamp) "
+                    "VALUES ('KMA', 0, %s, %s, %s, %s, %s, %s)",
+                    (obs.get('wind_speed'), obs.get('wind_direction'), obs.get('rainfall'), obs.get('temperature'), obs.get('humidity'), kst)
+                )
+                print(f"  -> 관측 저장 완료: {obs['temperature']}°C")
+            
+            # [수정] 예보 데이터(offset 1, 3, 6)는 이제 DB에 저장하지 않습니다.
+            # C++ 백엔드에서 사용자 요청 시 실시간으로 가져오도록 변경되었습니다.
             
             conn.close()
-            
         except Exception as e:
-            print(f"!!! 루프 오류: {e}")
-            
-        await asyncio.sleep(3600)
+            print(f"!!! Error in loop: {e}")
+        
+        await asyncio.sleep(300) # 5분 주기로 변경
 
 if __name__ == "__main__":
     asyncio.run(main())
