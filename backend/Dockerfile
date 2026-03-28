@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 COPY . .
 
-RUN mkdir -p build && cd build && cmake .. && make -j$(nproc)
+RUN mkdir -p build && cd build && cmake .. && make -j2
 
 EXPOSE 8000
 CMD ["./build/smartfarm_server"]

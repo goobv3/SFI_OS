@@ -232,4 +232,45 @@ std::pair<int, int> WeatherManager::convertGrid(double lat, double lon) {
     return {nx, ny};
 }
 
+void WeatherManager::recordFarmWeather(const nlohmann::json& data) {
+    try {
+        auto& db = Core::Database::getInstance();
+        std::string ts = data.value("timestamp", "");
+        if (ts.empty()) {
+            std::time_t now = std::time(nullptr);
+            char buf[30];
+            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+            ts = buf;
+        }
+
+        double temp = data.value("temperature", 0.0);
+        double hum = data.value("humidity", 0.0);
+        double wind = data.value("wind_speed", 0.0);
+        
+        std::string wind_dir = "0";
+        if (data.contains("wind_direction")) {
+            if (data["wind_direction"].is_number()) {
+                wind_dir = std::to_string(data["wind_direction"].get<double>());
+            } else if (data["wind_direction"].is_string()) {
+                wind_dir = data["wind_direction"].get<std::string>();
+            }
+        }
+
+        double rain = data.value("rainfall", 0.0);
+        double solar = data.value("solar_radiation", 0.0);
+        
+        std::string sql = "INSERT INTO weather_data (source, forecast_offset, timestamp, temperature, humidity, wind_speed, wind_direction, rainfall, solar_radiation) VALUES ('FARM', 0, '"
+            + ts + "', " + std::to_string(temp) + ", " + std::to_string(hum) + ", "
+            + std::to_string(wind) + ", '" + wind_dir + "', "
+            + std::to_string(rain) + ", " + std::to_string(solar) + ")";
+            
+        if (!db.execute(sql)) {
+            std::cerr << "[WeatherManager] Failed to insert farm weather data" << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[WeatherManager] recordFarmWeather error: " << e.what() << std::endl;
+    }
 }
+
+}
+

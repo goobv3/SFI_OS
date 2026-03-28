@@ -25,47 +25,45 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
         return res;
     };
 
-    // --- OPTIONS 사전 요청 처리 (CORS Preflight) ---
-    // CORSHandler가 미들웨어로 등록되어 있으므로, 개별 라우트에서는 메서드만 허용하면 됩니다.
-    // 만약 OPTIONS 에러가 지속된다면 아래와 같이 "OPTIONS"_method를 명시적으로 추가합니다.
-
-    CROW_ROUTE(app, "/api/metadata/houses").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
-        return jsonResponse({});
-    });
-    CROW_ROUTE(app, "/api/metadata/houses/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
-        return jsonResponse({});
-    });
-    CROW_ROUTE(app, "/api/metadata/houses/reorder").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
-        return jsonResponse({});
-    });
-    CROW_ROUTE(app, "/api/metadata/sensors").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
-        return jsonResponse({});
-    });
-    CROW_ROUTE(app, "/api/metadata/sensors/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
-        return jsonResponse({});
-    });
-    CROW_ROUTE(app, "/api/metadata/actuators").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&){
-        return jsonResponse({});
-    });
-    CROW_ROUTE(app, "/api/metadata/actuators/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
-        return jsonResponse({});
-    });
-    CROW_ROUTE(app, "/api/metadata/discovery/<string>").methods(crow::HTTPMethod::Options)([&jsonResponse](const crow::request&, const std::string&){
-        return jsonResponse({});
-    });
-
     // =========================================================
     // 1. 하우스(동) 관련 API
     // =========================================================
 
-    // GET /api/houses - 전체 하우스 목록
-    CROW_ROUTE(app, "/api/houses").methods(crow::HTTPMethod::Get)([&jsonResponse](){
+    // GET+POST /api/houses - 전체 하우스 목록 조회 및 생성
+    CROW_ROUTE(app, "/api/houses").methods(crow::HTTPMethod::Get, crow::HTTPMethod::Post, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
+        if (req.method == crow::HTTPMethod::Post) {
+            try {
+                auto body = nlohmann::json::parse(req.body);
+                std::string house_id = body.value("house_id", "");
+                std::string name     = body.value("name", house_id);
+                bool ok = Managers::HouseManager::getInstance().createHouse(house_id, name);
+                return jsonResponse({{"status", ok ? "created" : "error"}}, ok ? 201 : 400);
+            } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
+        }
         return jsonResponse(Managers::HouseManager::getInstance().getHouses());
     });
 
     // GET /api/houses/{house_id}/devices - 특정 하우스 기기 목록
     CROW_ROUTE(app, "/api/houses/<string>/devices").methods(crow::HTTPMethod::Get)([&jsonResponse](const std::string& house_id){
         return jsonResponse(Managers::HouseManager::getInstance().getHouseDevices(house_id));
+    });
+
+    // PUT/DELETE /api/houses/<house_id> - 하우스 수정/삭제 (레거시 경로 호환)
+    CROW_ROUTE(app, "/api/houses/<string>").methods(crow::HTTPMethod::Put, crow::HTTPMethod::Delete, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req, const std::string& house_id){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
+        if (req.method == crow::HTTPMethod::Put) {
+            try {
+                auto body = nlohmann::json::parse(req.body);
+                std::string name = body.value("name", house_id);
+                int display_order = body.value("display_order", 0);
+                bool ok = Managers::HouseManager::getInstance().updateHouse(house_id, name, display_order);
+                return jsonResponse({{"status", ok ? "updated" : "error"}}, ok ? 200 : 400);
+            } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
+        } else {
+            bool ok = Managers::HouseManager::getInstance().deleteHouse(house_id);
+            return jsonResponse({{"status", ok ? "deleted" : "error"}});
+        }
     });
 
     // =========================================================
@@ -147,7 +145,8 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
     // =========================================================
 
     // POST /api/metadata/houses - 재배동 생성
-    CROW_ROUTE(app, "/api/metadata/houses").methods(crow::HTTPMethod::Post)([&jsonResponse](const crow::request& req){
+    CROW_ROUTE(app, "/api/metadata/houses").methods(crow::HTTPMethod::Post, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
         try {
             auto body = nlohmann::json::parse(req.body);
             std::string house_id = body.value("house_id", "");
@@ -157,14 +156,26 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
         } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
     });
 
-    // DELETE /api/metadata/houses/<house_id> - 재배동 삭제
-    CROW_ROUTE(app, "/api/metadata/houses/<string>").methods(crow::HTTPMethod::Delete)([&jsonResponse](const std::string& house_id){
-        bool ok = Managers::HouseManager::getInstance().deleteHouse(house_id);
-        return jsonResponse({{"status", ok ? "deleted" : "error"}});
+    // PUT/DELETE /api/metadata/houses/<string> - 재배동 수정 및 삭제
+    CROW_ROUTE(app, "/api/metadata/houses/<string>").methods(crow::HTTPMethod::Put, crow::HTTPMethod::Delete, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req, const std::string& house_id){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
+        if (req.method == crow::HTTPMethod::Put) {
+            try {
+                auto body = nlohmann::json::parse(req.body);
+                std::string name = body.value("name", house_id);
+                int display_order = body.value("display_order", 0);
+                bool ok = Managers::HouseManager::getInstance().updateHouse(house_id, name, display_order);
+                return jsonResponse({{"status", ok ? "updated" : "error"}}, ok ? 200 : 400);
+            } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
+        } else {
+            bool ok = Managers::HouseManager::getInstance().deleteHouse(house_id);
+            return jsonResponse({{"status", ok ? "deleted" : "error"}});
+        }
     });
 
     // PUT /api/metadata/houses/reorder - 재배동 순서 저장
-    CROW_ROUTE(app, "/api/metadata/houses/reorder").methods(crow::HTTPMethod::Put)([&jsonResponse](const crow::request& req){
+    CROW_ROUTE(app, "/api/metadata/houses/reorder").methods(crow::HTTPMethod::Put, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
         try {
             auto body = nlohmann::json::parse(req.body);
             bool ok = Managers::HouseManager::getInstance().updateHousesOrder(body["ordered_ids"]);
@@ -173,7 +184,8 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
     });
 
     // POST /api/metadata/sensors - 센서 등록
-    CROW_ROUTE(app, "/api/metadata/sensors").methods(crow::HTTPMethod::Post)([&jsonResponse](const crow::request& req){
+    CROW_ROUTE(app, "/api/metadata/sensors").methods(crow::HTTPMethod::Post, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
         try {
             auto body = nlohmann::json::parse(req.body);
             bool ok = Managers::HouseManager::getInstance().createSensor(body);
@@ -181,23 +193,24 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
         } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
     });
 
-    // PUT /api/metadata/sensors/<sensor_id> - 센서 설정 수정 (임계값 포함)
-    CROW_ROUTE(app, "/api/metadata/sensors/<string>").methods(crow::HTTPMethod::Put)([&jsonResponse](const crow::request& req, const std::string& sensor_id){
-        try {
-            auto body = nlohmann::json::parse(req.body);
-            bool ok = Managers::HouseManager::getInstance().updateSensor(sensor_id, body);
-            return jsonResponse({{"status", ok ? "updated" : "error"}});
-        } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
-    });
-
-    // DELETE /api/metadata/sensors/<sensor_id> - 센서 삭제
-    CROW_ROUTE(app, "/api/metadata/sensors/<string>").methods(crow::HTTPMethod::Delete)([&jsonResponse](const std::string& sensor_id){
-        bool ok = Managers::HouseManager::getInstance().deleteSensor(sensor_id);
-        return jsonResponse({{"status", ok ? "deleted" : "error"}});
+    // PUT/DELETE /api/metadata/sensors/<sensor_id> - 센서 상태 수정 및 삭제
+    CROW_ROUTE(app, "/api/metadata/sensors/<string>").methods(crow::HTTPMethod::Put, crow::HTTPMethod::Delete, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req, const std::string& sensor_id){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
+        if (req.method == crow::HTTPMethod::Put) {
+            try {
+                auto body = nlohmann::json::parse(req.body);
+                bool ok = Managers::HouseManager::getInstance().updateSensor(sensor_id, body);
+                return jsonResponse({{"status", ok ? "updated" : "error"}});
+            } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
+        } else {
+            bool ok = Managers::HouseManager::getInstance().deleteSensor(sensor_id);
+            return jsonResponse({{"status", ok ? "deleted" : "error"}});
+        }
     });
 
     // POST /api/metadata/actuators - 액추에이터 등록
-    CROW_ROUTE(app, "/api/metadata/actuators").methods(crow::HTTPMethod::Post)([&jsonResponse](const crow::request& req){
+    CROW_ROUTE(app, "/api/metadata/actuators").methods(crow::HTTPMethod::Post, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
         try {
             auto body = nlohmann::json::parse(req.body);
             bool ok = Managers::HouseManager::getInstance().createActuator(body);
@@ -205,23 +218,24 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
         } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
     });
 
-    // PUT /api/metadata/actuators/<actuator_id> - 액추에이터 수정
-    CROW_ROUTE(app, "/api/metadata/actuators/<string>").methods(crow::HTTPMethod::Put)([&jsonResponse](const crow::request& req, const std::string& actuator_id){
-        try {
-            auto body = nlohmann::json::parse(req.body);
-            bool ok = Managers::HouseManager::getInstance().updateActuator(actuator_id, body);
-            return jsonResponse({{"status", ok ? "updated" : "error"}});
-        } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
-    });
-
-    // DELETE /api/metadata/actuators/<actuator_id> - 액추에이터 삭제
-    CROW_ROUTE(app, "/api/metadata/actuators/<string>").methods(crow::HTTPMethod::Delete)([&jsonResponse](const std::string& actuator_id){
-        bool ok = Managers::HouseManager::getInstance().deleteActuator(actuator_id);
-        return jsonResponse({{"status", ok ? "deleted" : "error"}});
+    // PUT/DELETE /api/metadata/actuators/<actuator_id> - 액추에이터 수정 및 삭제
+    CROW_ROUTE(app, "/api/metadata/actuators/<string>").methods(crow::HTTPMethod::Put, crow::HTTPMethod::Delete, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req, const std::string& actuator_id){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
+        if (req.method == crow::HTTPMethod::Put) {
+            try {
+                auto body = nlohmann::json::parse(req.body);
+                bool ok = Managers::HouseManager::getInstance().updateActuator(actuator_id, body);
+                return jsonResponse({{"status", ok ? "updated" : "error"}});
+            } catch (...) { return jsonResponse({{"error","invalid payload"}}, 400); }
+        } else {
+            bool ok = Managers::HouseManager::getInstance().deleteActuator(actuator_id);
+            return jsonResponse({{"status", ok ? "deleted" : "error"}});
+        }
     });
 
     // DELETE /api/metadata/discovery/<device_id> - 감지기기 삭제/무시
-    CROW_ROUTE(app, "/api/metadata/discovery/<string>").methods(crow::HTTPMethod::Delete)([&jsonResponse](const std::string& device_id){
+    CROW_ROUTE(app, "/api/metadata/discovery/<string>").methods(crow::HTTPMethod::Delete, crow::HTTPMethod::Options)([&jsonResponse](const crow::request& req, const std::string& device_id){
+        if (req.method == crow::HTTPMethod::Options) return jsonResponse({});
         bool ok = Managers::HouseManager::getInstance().deleteDiscoveredDevice(device_id);
         return jsonResponse({{"status", ok ? "deleted" : "error"}});
     });

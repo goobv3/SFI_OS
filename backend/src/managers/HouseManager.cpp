@@ -80,6 +80,13 @@ bool HouseManager::createHouse(const std::string& house_id, const std::string& n
     return db.execute(sql);
 }
 
+bool HouseManager::updateHouse(const std::string& house_id, const std::string& name, int display_order) {
+    auto& db = Core::Database::getInstance();
+    std::string sql = "UPDATE houses SET name='" + name + "', display_order=" + std::to_string(display_order) +
+                      " WHERE house_id='" + house_id + "'";
+    return db.execute(sql);
+}
+
 bool HouseManager::deleteHouse(const std::string& house_id) {
     auto& db = Core::Database::getInstance();
     db.execute("DELETE FROM sensor_metadata WHERE house_id='" + house_id + "'");
@@ -123,6 +130,7 @@ bool HouseManager::updateSensor(const std::string& sensor_id, const nlohmann::js
     auto toSqlVal = [](const nlohmann::json& v) -> std::string {
         if (v.is_null()) return "NULL";
         if (v.is_number()) return std::to_string(v.get<double>());
+        if (v.is_string() && v.get<std::string>() == "") return "NULL";
         return "'" + v.get<std::string>() + "'";
     };
     std::vector<std::string> parts;
@@ -130,7 +138,13 @@ bool HouseManager::updateSensor(const std::string& sensor_id, const nlohmann::js
     if (body.contains("type"))          parts.push_back("type='"          + body["type"].get<std::string>()          + "'");
     if (body.contains("unit"))          parts.push_back("unit='"          + body["unit"].get<std::string>()          + "'");
     if (body.contains("display_order")) parts.push_back("display_order="  + std::to_string(body["display_order"].get<int>()));
-    if (body.contains("is_active"))     parts.push_back(std::string("is_active=") + (body["is_active"].get<bool>() ? "1" : "0"));
+    if (body.contains("is_active")) {
+        bool active = false;
+        if (body["is_active"].is_boolean()) active = body["is_active"].get<bool>();
+        else if (body["is_active"].is_string()) active = (body["is_active"].get<std::string>() == "1" || body["is_active"].get<std::string>() == "true");
+        else if (body["is_active"].is_number()) active = (body["is_active"].get<int>() != 0);
+        parts.push_back(std::string("is_active=") + (active ? "1" : "0"));
+    }
     if (body.contains("warn_high"))     parts.push_back("warn_high="      + toSqlVal(body["warn_high"]));
     if (body.contains("warn_low"))      parts.push_back("warn_low="       + toSqlVal(body["warn_low"]));
     if (body.contains("crit_high"))     parts.push_back("crit_high="      + toSqlVal(body["crit_high"]));

@@ -63,7 +63,35 @@ if __name__ == "__main__":
 
 ---
 
-## 📦 2. 주요 기능 및 메서드 목록
+## 🌐 3. C++ 백엔드 REST API (Smart Farm OS)
+
+본 프로젝트의 C++ 백엔드(Crow 기반)에서 제공하는 하우스 및 기기 관리 인터페이스입니다.
+
+### 하우스(동) 관리 엔드포인트
+| 기능 | 메서드 | 경로 (Endpoint) | 비고 |
+|:---|:---:|:---|:---|
+| 목록 조회 | GET | `/api/houses` | 전체 하우스 목록 및 메타데이터 |
+| 신규 생성 | POST | `/api/metadata/houses` | `house_id`, `name`, `display_order` 포함 |
+| 정보 수정 | PUT | `/api/metadata/houses/<id>` | 이름 및 표시 순서 수정 |
+| 삭제 | DELETE | `/api/metadata/houses/<id>` | 해당 하우스 및 종속 기기 삭제(Cascade 아님 주의) |
+
+### 🛠️ 라우팅 호환성 레이어 (Compatibility Layer)
+기존 프론트엔드 코드와의 호환성을 위해 다음의 단축 경로(Shortcut)도 지원합니다.
+- `POST /api/houses` (생성)
+- `PUT /api/houses/<id>` (수정)
+- `DELETE /api/houses/<id>` (삭제)
+
+> [!TIP]
+> 모든 API 응답은 `application/json` 형식이며, 성공 시 `{"status": "created/updated/deleted"}` 형태를 반환합니다.
+
+### 기기(센서/구동기) 메타데이터 관리
+- **센서 생성:** `POST /api/metadata/sensors`
+- **구동기 생성:** `POST /api/metadata/actuators`
+- **센서 수정:** `PUT /api/metadata/sensors/<id>` (알람 임계치 포함)
+
+---
+
+## 📦 4. 주요 기능 및 메서드 목록 (개발자용)
 
 ### 하우스 (구역) 관리
 - `get_all_houses()`: 딕셔너리 리스트 반환 (display_order 순 정렬)

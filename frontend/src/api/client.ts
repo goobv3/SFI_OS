@@ -26,15 +26,15 @@ export const smartFarmApi = {
         return response.data; // [{ house_id, name, created_at }, ...]
     },
     createHouse: async (houseId: string, name: string, displayOrder: number = 0) => {
-        const response = await apiClient.post('/houses', { house_id: houseId, name, display_order: displayOrder });
+        const response = await apiClient.post('/metadata/houses', { house_id: houseId, name, display_order: displayOrder });
         return response.data;
     },
     updateHouse: async (houseId: string, name: string, displayOrder: number = 0) => {
-        const response = await apiClient.put(`/houses/${houseId}`, { name, display_order: displayOrder });
+        const response = await apiClient.put(`/metadata/houses/${houseId}`, { name, display_order: displayOrder });
         return response.data;
     },
     deleteHouse: async (houseId: string) => {
-        const response = await apiClient.delete(`/houses/${houseId}`);
+        const response = await apiClient.delete(`/metadata/houses/${houseId}`);
         return response.data;
     },
 

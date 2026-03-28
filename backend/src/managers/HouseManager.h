@@ -14,6 +14,7 @@ public:
 
     // ── 하우스 CRUD ──
     bool createHouse(const std::string& house_id, const std::string& name);
+    bool updateHouse(const std::string& house_id, const std::string& name, int display_order);
     bool deleteHouse(const std::string& house_id);
     bool updateHousesOrder(const nlohmann::json& ordered_ids);
 

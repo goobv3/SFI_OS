@@ -119,18 +119,21 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
             // Save Sensors Order (only for the currently selected house, 
             // but this logic supports the user's primary use-case of editing one house at a time)
             if (houseDevices.sensors.length > 0) {
+                const parseF = (v: any) => (v === '' || v == null) ? null : Number(v);
+                const parseB = (v: any) => v === true || v === '1' || v === 1 || v === 'true';
+                
                 await Promise.all(
                     houseDevices.sensors.map((s, index) =>
                         smartFarmApi.updateSensor(s.sensor_id, {
                             alias: s.alias,
                             type: s.type,
-                            unit: s.unit,
+                            unit: s.unit || '',
                             display_order: index,
-                            is_active: s.is_active,
-                            warn_high: s.warn_high,
-                            warn_low: s.warn_low,
-                            crit_high: s.crit_high,
-                            crit_low: s.crit_low
+                            is_active: parseB(s.is_active),
+                            warn_high: parseF(s.warn_high),
+                            warn_low: parseF(s.warn_low),
+                            crit_high: parseF(s.crit_high),
+                            crit_low: parseF(s.crit_low)
                         })
                     )
                 );
