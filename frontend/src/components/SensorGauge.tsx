@@ -1,23 +1,22 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // ---------------------------------------------------------
 // 센서 도넛 차트 (Sensor Gauge Component)
 // ---------------------------------------------------------
-// 이 파일은 대시보드에서 각 센서(온도, 습도 등)의 값을 
-// 시각적인 둥근 원형 게이지바(도넛 차트)로 예쁘게 그려주는 "디스플레이 부품"입니다.
-// 경고(Warning)치나 위험(Critical)치를 넘어가면 게이지 색상이 빨간색이나 주황색으로 실시간으로 변합니다.
-// ---------------------------------------------------------
 
 interface GaugeProps {
-    value: number; // 현재 센서 측정 값
-    min?: number;  // 게이지의 최솟값
-    max?: number;  // 게이지의 최댓값
-    warnLow?: number | null; // 노란색 경고로 바뀔 하한선
-    warnHigh?: number | null; // 노란색 경고로 바뀔 상한선
-    critLow?: number | null;  // 빨간색 위험으로 바뀔 하한선
-    critHigh?: number | null; // 빨간색 위험으로 바뀔 상한선
+    value: number;
+    min?: number;
+    max?: number;
+    warnLow?: number | null;
+    warnHigh?: number | null;
+    critLow?: number | null;
+    critHigh?: number | null;
     unit: string;
     title: string;
+    /** 센서 타입별 기본 색상 (optional, 전달 시 Normal 상태 색에 반영) */
+    accentColor?: string;
 }
 
 export default function SensorGauge({
@@ -29,87 +28,84 @@ export default function SensorGauge({
     critLow,
     critHigh,
     unit,
-    title
+    title,
+    accentColor = '#00f0ff',
 }: GaugeProps) {
-    // Determine status color
-    let statusColor = '#00f0ff'; // Neon Blue (Normal)
-    let statusText = '정상';
+    const { t } = useLanguage();
+
+    // ── 상태 판별 ──
+    let statusColor = accentColor;
+    let statusText = t('statusNormal');
 
     if (critHigh !== null && critHigh !== undefined && value >= critHigh) {
-        statusColor = '#EF4444'; // Red
-        statusText = '위험 (High)';
+        statusColor = '#EF4444';
+        statusText = t('statusCritHigh');
     } else if (critLow !== null && critLow !== undefined && value <= critLow) {
-        statusColor = '#EF4444'; // Red
-        statusText = '위험 (Low)';
+        statusColor = '#EF4444';
+        statusText = t('statusCritLow');
     } else if (warnHigh !== null && warnHigh !== undefined && value >= warnHigh) {
-        statusColor = '#F59E0B'; // Amber
-        statusText = '경고 (High)';
+        statusColor = '#F59E0B';
+        statusText = t('statusWarnHigh');
     } else if (warnLow !== null && warnLow !== undefined && value <= warnLow) {
-        statusColor = '#F59E0B'; // Amber
-        statusText = '경고 (Low)';
+        statusColor = '#F59E0B';
+        statusText = t('statusWarnLow');
     }
 
-    // Clamp value for chart rendering
+    const isCrit = statusColor === '#EF4444';
+    const isWarn = statusColor === '#F59E0B';
+
+    // ── 게이지 퍼센트 ──
     const clampedValue = Math.min(Math.max(value, min), max);
     const percentage = ((clampedValue - min) / (max - min)) * 100;
 
     const data = [
-        { name: 'Value', value: percentage, color: statusColor },
-        { name: 'Remainder', value: 100 - percentage, color: '#1f2937' } // gray-800
+        { name: 'Value',     value: percentage,       color: statusColor },
+        { name: 'Remainder', value: 100 - percentage, color: '#1f2937' },
     ];
 
+    // ── 임계치 배경 아크 ──
     const buildThresholdData = () => {
-        const segments = [];
-        let currentStart = min;
+        const segments: { value: number; color: string }[] = [];
+        let cur = min;
 
-        // Ensure we don't go out of bounds
-        const safeCritLow = critLow !== null && critLow !== undefined ? Math.max(min, critLow) : null;
-        const safeWarnLow = warnLow !== null && warnLow !== undefined ? Math.max(min, warnLow) : null;
-        const safeWarnHigh = warnHigh !== null && warnHigh !== undefined ? Math.min(max, warnHigh) : null;
-        const safeCritHigh = critHigh !== null && critHigh !== undefined ? Math.min(max, critHigh) : null;
+        const safeCritLow  = critLow  != null ? Math.max(min, critLow)  : null;
+        const safeWarnLow  = warnLow  != null ? Math.max(min, warnLow)  : null;
+        const safeWarnHigh = warnHigh != null ? Math.min(max, warnHigh) : null;
+        const safeCritHigh = critHigh != null ? Math.min(max, critHigh) : null;
 
-        // Zone 1: Critical Low
-        if (safeCritLow !== null && safeCritLow > currentStart) {
-            segments.push({ value: safeCritLow - currentStart, color: '#EF4444' }); // Red
-            currentStart = safeCritLow;
+        if (safeCritLow !== null && safeCritLow > cur) {
+            segments.push({ value: safeCritLow - cur, color: '#EF4444' });
+            cur = safeCritLow;
+        }
+        if (safeWarnLow !== null && safeWarnLow > cur) {
+            segments.push({ value: safeWarnLow - cur, color: '#F59E0B' });
+            cur = safeWarnLow;
         }
 
-        // Zone 2: Warning Low
-        if (safeWarnLow !== null && safeWarnLow > currentStart) {
-            segments.push({ value: safeWarnLow - currentStart, color: '#F59E0B' }); // Amber
-            currentStart = safeWarnLow;
-        }
-
-        // Zone 3: Normal
         let normalEnd = max;
         if (safeWarnHigh !== null) normalEnd = safeWarnHigh;
         else if (safeCritHigh !== null) normalEnd = safeCritHigh;
 
-        if (normalEnd > currentStart) {
-            segments.push({ value: normalEnd - currentStart, color: '#00f0ff' }); // Neon Blue
-            currentStart = normalEnd;
+        if (normalEnd > cur) {
+            segments.push({ value: normalEnd - cur, color: accentColor });
+            cur = normalEnd;
         }
 
-        // Zone 4: Warning High
         if (safeWarnHigh !== null) {
             let warnEnd = max;
             if (safeCritHigh !== null) warnEnd = safeCritHigh;
-            if (warnEnd > currentStart) {
-                segments.push({ value: warnEnd - currentStart, color: '#F59E0B' }); // Amber
-                currentStart = warnEnd;
+            if (warnEnd > cur) {
+                segments.push({ value: warnEnd - cur, color: '#F59E0B' });
+                cur = warnEnd;
             }
         }
 
-        // Zone 5: Critical High
-        if (safeCritHigh !== null && max > currentStart) {
-            segments.push({ value: max - currentStart, color: '#EF4444' }); // Red
-            currentStart = max;
+        if (safeCritHigh !== null && max > cur) {
+            segments.push({ value: max - cur, color: '#EF4444' });
+            cur = max;
         }
 
-        // Ensure we fill up to max if thresholds don't
-        if (currentStart < max) {
-            segments.push({ value: max - currentStart, color: '#00f0ff' });
-        }
+        if (cur < max) segments.push({ value: max - cur, color: accentColor });
 
         return segments;
     };
@@ -117,8 +113,8 @@ export default function SensorGauge({
     const thresholdData = buildThresholdData();
 
     return (
-        <div className="flex flex-col items-center justify-center relative w-full h-[110px]">
-            {/* Title at the top */}
+        <div className="flex flex-col items-center justify-center relative w-full h-[130px]">
+            {/* 타이틀 */}
             <div className="absolute top-0 w-full flex justify-center z-10 pointer-events-none">
                 <span className="text-[11px] font-bold text-gray-500 tracking-widest uppercase truncate px-2">{title}</span>
             </div>
@@ -126,7 +122,7 @@ export default function SensorGauge({
             <div className="w-full h-full mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                        {/* Background Threshold Arc */}
+                        {/* 배경 임계치 아크 – opacity 0.15 (더 은은하게) */}
                         <Pie
                             data={thresholdData}
                             cx="50%"
@@ -142,11 +138,11 @@ export default function SensorGauge({
                             isAnimationActive={false}
                         >
                             {thresholdData.map((entry, index) => (
-                                <Cell key={`bg-cell-${index}`} fill={entry.color} opacity={0.3} />
+                                <Cell key={`bg-cell-${index}`} fill={entry.color} opacity={0.15} />
                             ))}
                         </Pie>
 
-                        {/* Foreground Value Arc */}
+                        {/* 전경 값 아크 */}
                         <Pie
                             data={data}
                             cx="50%"
@@ -162,35 +158,45 @@ export default function SensorGauge({
                             isAnimationActive={true}
                         >
                             {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: `drop-shadow(0 0 6px ${entry.color}80)` }} />
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={entry.color}
+                                    style={{ filter: `drop-shadow(0 0 6px ${entry.color}80)` }}
+                                />
                             ))}
                         </Pie>
                     </PieChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Value placed securely in the hollow center of the gauge */}
+            {/* 중앙 수치 – text-2xl로 확장 */}
             <div className="absolute flex flex-col items-center pointer-events-none" style={{ bottom: '10%' }}>
                 <div className="flex items-baseline gap-0.5">
                     <span
-                        className={`text-lg font-bold tracking-tighter ${statusColor === '#EF4444' ? 'text-red-400 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
-                            statusColor === '#F59E0B' ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' :
-                                'text-neon-blue drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]'
-                            }`}
+                        className={`text-2xl font-bold tracking-tighter ${
+                            isCrit ? 'text-red-400 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
+                            isWarn ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' :
+                                     'drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]'
+                        }`}
+                        style={!isCrit && !isWarn ? { color: accentColor } : undefined}
                     >
                         {value.toFixed(1)}
                     </span>
                     <span className="text-xs text-gray-500 font-medium">{unit}</span>
                 </div>
-                <span className={`text-[10px] font-bold uppercase tracking-widest leading-none mt-1 ${statusColor === '#EF4444' ? 'text-red-500' :
-                    statusColor === '#F59E0B' ? 'text-amber-500' :
-                        'text-neon-blue/70'
-                    }`}>
+                <span
+                    className={`text-[10px] font-bold uppercase tracking-widest leading-none mt-1 ${
+                        isCrit ? 'text-red-500' :
+                        isWarn ? 'text-amber-500' :
+                                 'opacity-80'
+                    }`}
+                    style={!isCrit && !isWarn ? { color: accentColor } : undefined}
+                >
                     {statusText}
                 </span>
             </div>
 
-            {/* Min/Max ticks at the bottom corners of the arc */}
+            {/* Min / Max 눈금 */}
             <div className="absolute w-full px-2 flex justify-between text-xs text-gray-400 font-mono pointer-events-none" style={{ bottom: '15%' }}>
                 <span>{min}</span>
                 <span>{max}</span>

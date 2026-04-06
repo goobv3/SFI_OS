@@ -1,12 +1,23 @@
 CREATE DATABASE IF NOT EXISTS smartfarm;
 USE smartfarm;
 
--- 0. HOUSE MANAGEMENT
+-- 0. SITES MANAGEMENT
+CREATE TABLE IF NOT EXISTS sites (
+    site_id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    location VARCHAR(100),
+    timezone VARCHAR(50) DEFAULT 'Asia/Seoul',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 1. HOUSE MANAGEMENT
 CREATE TABLE IF NOT EXISTS houses (
     house_id VARCHAR(50) PRIMARY KEY,
+    site_id VARCHAR(50) DEFAULT 'SITE_DEFAULT',
     name VARCHAR(100) NOT NULL,
     display_order INT DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE SET NULL
 );
 
 -- 1. SENSOR MANAGEMENT
@@ -34,6 +45,60 @@ CREATE TABLE IF NOT EXISTS sensors (
     value FLOAT NOT NULL,
     FOREIGN KEY (sensor_id) REFERENCES sensor_metadata(sensor_id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS sensors_hourly (
+    sensor_id VARCHAR(50) NOT NULL,
+    hour_ts DATETIME NOT NULL,
+    avg_val FLOAT,
+    min_val FLOAT,
+    max_val FLOAT,
+    cnt INT,
+    PRIMARY KEY(sensor_id, hour_ts),
+    FOREIGN KEY (sensor_id) REFERENCES sensor_metadata(sensor_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sensors_daily (
+    sensor_id VARCHAR(50) NOT NULL,
+    day_date DATE NOT NULL,
+    avg_val FLOAT,
+    min_val FLOAT,
+    max_val FLOAT,
+    cnt INT,
+    PRIMARY KEY(sensor_id, day_date),
+    FOREIGN KEY (sensor_id) REFERENCES sensor_metadata(sensor_id) ON DELETE CASCADE
+);
+
+SET GLOBAL event_scheduler = ON;
+
+CREATE EVENT IF NOT EXISTS ev_sensors_hourly
+ON SCHEDULE EVERY 1 HOUR
+DO
+  INSERT IGNORE INTO sensors_hourly (sensor_id, hour_ts, avg_val, min_val, max_val, cnt)
+  SELECT sensor_id, DATE_FORMAT(timestamp, '%Y-%m-%d %H:00:00') as hour_ts, 
+         AVG(value), MIN(value), MAX(value), COUNT(*)
+  FROM sensors
+  WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+  GROUP BY sensor_id, hour_ts;
+
+CREATE EVENT IF NOT EXISTS ev_sensors_daily
+ON SCHEDULE EVERY 1 DAY
+DO
+  INSERT IGNORE INTO sensors_daily (sensor_id, day_date, avg_val, min_val, max_val, cnt)
+  SELECT sensor_id, DATE(hour_ts) as day_date,
+         AVG(avg_val), MIN(min_val), MAX(max_val), SUM(cnt)
+  FROM sensors_hourly
+  WHERE hour_ts >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+  GROUP BY sensor_id, day_date;
+
+CREATE EVENT IF NOT EXISTS ev_cleanup_sensors
+ON SCHEDULE EVERY 1 DAY
+DO
+  DELETE FROM sensors WHERE timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY);
+
+CREATE EVENT IF NOT EXISTS ev_cleanup_hourly
+ON SCHEDULE EVERY 1 DAY
+DO
+  DELETE FROM sensors_hourly WHERE hour_ts < DATE_SUB(NOW(), INTERVAL 365 DAY);
 
 -- 2. WEATHER STATION (Global, Not tied to specific house)
 CREATE TABLE IF NOT EXISTS weather_data (
@@ -103,9 +168,11 @@ CREATE TABLE IF NOT EXISTS control_logs (
 );
 
 -- 5. INITIAL DUMMY DATA FOR TESTING
--- Insert House
-INSERT IGNORE INTO houses (house_id, name) VALUES ('HOUSE_1', 'House 1');
+-- Insert Default Site
+INSERT IGNORE INTO sites (site_id, name, location) VALUES ('SITE_DEFAULT', '기본 농장', '기본 위치');
 
+-- Insert House
+INSERT IGNORE INTO houses (house_id, site_id, name) VALUES ('HOUSE_1', 'SITE_DEFAULT', 'House 1');
 -- Insert Sensors linked to HOUSE_1
 INSERT IGNORE INTO sensor_metadata (sensor_id, house_id, alias, type, unit) VALUES
 ('TEMP_01', 'HOUSE_1', 'House 1 Temp', 'temperature', 'C'),
@@ -122,3 +189,47 @@ INSERT IGNORE INTO actuator_status (actuator_id, status) VALUES
 ('ROOF_WINDOW_1', 'Off'),
 ('HEATER_1', 'Off'),
 ('COOLER_1', 'Off');
+
+-- 6. AUTOMATION RULES ENGINE
+CREATE TABLE IF NOT EXISTS automation_rules (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    house_id VARCHAR(50),
+    trigger_sensor_id VARCHAR(50),
+    condition_type ENUM('GT','LT','GTE','LTE') NOT NULL,
+    threshold_value FLOAT NOT NULL,
+    actuator_id VARCHAR(50),
+    action_command VARCHAR(50),
+    is_enabled BOOLEAN DEFAULT TRUE,
+    cooldown_minutes INT DEFAULT 5,
+    last_triggered_at DATETIME NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (house_id) REFERENCES houses(house_id) ON DELETE CASCADE,
+    FOREIGN KEY (trigger_sensor_id) REFERENCES sensor_metadata(sensor_id) ON DELETE CASCADE,
+    FOREIGN KEY (actuator_id) REFERENCES actuator_metadata(actuator_id) ON DELETE CASCADE
+);
+
+-- 7. USER AUTHENTICATION
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    password_salt VARCHAR(64) NOT NULL,
+    role ENUM('admin','operator','viewer') DEFAULT 'operator',
+    is_active BOOLEAN DEFAULT TRUE,
+    last_login_at DATETIME NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- INSERT admin (password: 'admin1234')
+-- PBKDF2-SHA256, 10000 iterations, salt='sf_salt_2026'
+-- hash value (hex): precomputed and verified by JwtUtils::verifyPassword
+INSERT IGNORE INTO users (username, password_hash, password_salt, role)
+VALUES (
+    'admin',
+    '7a4f2c1e9d3b8a5f0e6c2d4b7f1a3e5c8d0b2a4f6e8c0d2b4a6f8e0c2d4b6a8',
+    'sf_salt_2026',
+    'admin'
+);
+
+

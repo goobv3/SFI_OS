@@ -34,8 +34,6 @@ services:
     build: ./backend
     container_name: sf_backend
     restart: always
-    ports:
-      - "8000:8000"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -50,10 +48,16 @@ services:
       - KMA_SERVICE_KEY=3b1b77976ce0ca80247d4cd707834cff148c26d257a9b03826dda6829b75f0ad
       - LAT=37.3390
       - LON=127.4907
+      - JWT_SECRET=sf_secret_2026_change_in_production
+      - JWT_EXPIRY_HOURS=24
+      - SMTP_HOST=
+      - SMTP_PORT=
+      - SMTP_USER=
+      - SMTP_PASS=
+      - ALERT_EMAIL=
     command: ./build/smartfarm_server
 
-  # --- [추가] 기상 데이터 비동기 수집 태스크 (Weather Fetcher) ---
-  # 기상청 API에서 주기적으로 날씨 정보를 가져와 DB에 저장하는 역할을 수행합니다.
+  # --- 기상 데이터 비동기 수집 태스크 (Weather Fetcher) ---
   weather_fetcher:
     image: python:3.11-slim
     container_name: sf_weather_fetcher
@@ -74,18 +78,26 @@ services:
     command: >
       sh -c "pip install --no-cache-dir -r requirements.txt && python weather_fetcher.py"
 
-  # --- [복구] 프론트엔드 서비스 (React + Vite) ---
-  # 기존에 주석 처리되어 있던 프론트엔드 서비스를 활성화합니다.
-  # 포트는 Vite 기본값인 5173을 사용합니다.
+  # --- 프론트엔드 서비스 (React + Vite) ---
   frontend:
     build: ./frontend
     container_name: sf_frontend
     restart: always
-    ports:
-      - "5173:5173"
     depends_on:
       - backend
       - mariadb
+
+  # --- Nginx 리버스 프록시 ---
+  nginx:
+    build: ./nginx
+    container_name: sf_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
 
   mosquitto:
     image: eclipse-mosquitto:latest
@@ -98,4 +110,3 @@ services:
 
 volumes:
   db_data:
-

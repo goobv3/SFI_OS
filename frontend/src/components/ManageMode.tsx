@@ -51,6 +51,9 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
     // Dirty State (Unsaved Changes)
     const [isDirty, setIsDirty] = useState(false);
 
+    // Mobile Tab State
+    const [mobileTab, setMobileTab] = useState<'list' | 'edit'>('list');
+
     // House Drag & Drop Handlers
     const onHouseDragStart = (e: React.DragEvent, index: number) => {
         setDraggedHouseIndex(index);
@@ -374,7 +377,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 text-gray-200">
-            <div className="bg-[#12141a] border border-cyber-border/40 rounded-xl max-w-5xl w-full h-[82vh] flex flex-col relative shadow-2xl overflow-hidden">
+            <div className="bg-[#12141a] border border-cyber-border/40 rounded-xl max-w-5xl w-full h-[95vh] md:h-[82vh] flex flex-col relative shadow-2xl overflow-hidden">
                 {/* Header */}
                 <div className="h-12 flex items-center justify-between px-4 border-b border-cyber-border/20 bg-black/40 shrink-0">
                     <div className="flex items-center gap-3">
@@ -410,10 +413,26 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                     </button>
                 </div>
 
+                {/* Mobile Tab Toggle */}
+                <div className="md:hidden flex border-b border-cyber-border/20 bg-[#161821] shrink-0">
+                    <button 
+                        onClick={() => setMobileTab('list')} 
+                        className={`flex-1 py-3 text-sm font-bold transition-colors ${mobileTab === 'list' ? 'text-neon-blue border-b-2 border-neon-blue bg-neon-blue/10' : 'text-gray-500'}`}
+                    >
+                        {t('locations')} & Inbox
+                    </button>
+                    <button 
+                        onClick={() => setMobileTab('edit')} 
+                        className={`flex-1 py-3 text-sm font-bold transition-colors ${mobileTab === 'edit' ? 'text-neon-blue border-b-2 border-neon-blue bg-neon-blue/10' : 'text-gray-500'}`}
+                    >
+                        {t('deviceEditor')}
+                    </button>
+                </div>
+
                 {/* Content */}
                 <div className="flex-1 flex overflow-hidden">
                     {/* Left Panel: Navigation (Houses & Inbox) */}
-                    <div className="w-1/3 border-r border-cyber-border/20 bg-[#161821] flex flex-col">
+                    <div className={`w-full md:w-1/3 border-r border-cyber-border/20 bg-[#161821] flex-col ${mobileTab === 'list' ? 'flex' : 'hidden md:flex'}`}>
 
                         {/* Inbox Toggle Button */}
                         <div className="p-3 border-b border-cyber-border/20 bg-[#1c1e28]">
@@ -469,7 +488,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                                         ${dragOverHouseIndex === index ? 'border-t-2 border-t-neon-blue border-dashed' : ''}
                                         ${draggedHouseIndex === index ? 'opacity-50 bg-white/5' : ''}
                                     `}
-                                    onClick={() => { setSelectedHouseId(h.house_id); setViewMode('house_editor'); }}
+                                    onClick={() => { setSelectedHouseId(h.house_id); setViewMode('house_editor'); setMobileTab('edit'); }}
                                 >
                                     {editingHouseId === h.house_id ? (
                                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
@@ -511,7 +530,7 @@ export default function ManageMode({ onClose, onUpdate }: ManageModeProps) {
                     </div>
 
                     {/* Right Panel: Content View */}
-                    <div className="flex-1 bg-[#1a1c23] flex flex-col overflow-y-auto">
+                    <div className={`flex-1 bg-[#1a1c23] flex-col overflow-y-auto ${mobileTab === 'edit' ? 'flex' : 'hidden md:flex'}`}>
 
                         {/* --- VIEW MODE: DISCOVERY INBOX --- */}
                         {viewMode === 'inbox' && (

@@ -8,7 +8,7 @@ import axios from 'axios';
 // ---------------------------------------------------------
 
 // 백엔드 서버의 기본 주소입니다. 모든 통신은 이 주소로 시작합니다.
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = '/api';
 
 // axios(통신 라이브러리)를 이용해 기본적으로 사용할 편지지(설정)를 만듭니다.
 const apiClient = axios.create({
@@ -18,8 +18,62 @@ const apiClient = axios.create({
     },
 });
 
+// 요청 인터셉터: 로컬 스토리지에 토큰이 있으면 Authorization 헤더 추가
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// 응답 인터셉터: 401 Unauthorized 시 인증 정보 초기화 및 로그인 이동
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem('access_token');
+            // 이미 로그인 페이지면 루프 방지, 아니면 리다이렉트
+            // 하지만 App.tsx에서 상태로 관리할 것이므로 
+            // 강제 리로드하여 최상단 AuthProvider가 에러를 잡게 하거나
+            // 이벤트를 발생시킬 수 있습니다.
+            window.location.reload(); 
+        }
+        return Promise.reject(error);
+    }
+);
+
 // 기능별로 사용할 수 있는 우체부 기능 목록
 export const smartFarmApi = {
+    // --- [0. 멀티사이트(농장) 관리 통신] ---
+    getSites: async () => {
+        const response = await apiClient.get('/sites');
+        return response.data;
+    },
+    getSiteOverview: async (siteId: string) => {
+        const response = await apiClient.get(`/sites/${siteId}/overview`);
+        return response.data;
+    },
+    getSiteHouses: async (siteId: string) => {
+        const response = await apiClient.get(`/sites/${siteId}/houses`);
+        return response.data;
+    },
+    createSite: async (payload: { site_id: string, name: string, location: string }) => {
+        const response = await apiClient.post('/sites', payload);
+        return response.data;
+    },
+    updateSite: async (siteId: string, payload: { name: string, location: string, timezone?: string }) => {
+        const response = await apiClient.put(`/sites/${siteId}`, payload);
+        return response.data;
+    },
+    deleteSite: async (siteId: string) => {
+        const response = await apiClient.delete(`/sites/${siteId}`);
+        return response.data;
+    },
+
     // --- [1. 하우스(온실) 관리 통신] ---
     getHouses: async () => {
         const response = await apiClient.get('/houses');
@@ -90,9 +144,9 @@ export const smartFarmApi = {
         const response = await apiClient.get(`/sensors/${sensorId}/history?period=${period}`);
         return response.data; // [{ time: '...', avg_value: 23.5 }, ...]
     },
-    getSensorHistoryByRange: async (sensorIds: string[], startTime: string, endTime: string) => {
+    getSensorHistoryByRange: async (sensorIds: string[], startTime: string, endTime: string, resolution: string = 'auto') => {
         const ids = sensorIds.join(',');
-        const response = await apiClient.get(`/sensors/history_range?sensor_ids=${ids}&start_time=${startTime}&end_time=${endTime}`);
+        const response = await apiClient.get(`/sensors/${ids}/history?start=${startTime}&end=${endTime}&resolution=${resolution}`);
         return response.data;
     },
 
@@ -122,6 +176,46 @@ export const smartFarmApi = {
         // 백엔드에게 "제발 최신 날씨(그리고 hours_ahead 시간 뒤의 예보)를 줘!" 라고 요청합니다.
         const response = await apiClient.get(`/weather/latest?hours_ahead=${hours_ahead}`);
         return response.data; // 서버가 준 날씨 데이터를 반환합니다.
+    },
+
+    // --- [6. 자동화 룰 엔진] ---
+    getRules: async (houseId?: string) => {
+        const query = houseId ? `?house_id=${houseId}` : '';
+        const response = await apiClient.get(`/automation/rules${query}`);
+        return response.data;
+    },
+    createRule: async (payload: {
+        name?: string;
+        house_id: string;
+        trigger_sensor_id: string;
+        condition_type: 'GT' | 'LT' | 'GTE' | 'LTE';
+        threshold_value: number;
+        actuator_id: string;
+        action_command: string;
+        cooldown_minutes?: number;
+    }) => {
+        const response = await apiClient.post('/automation/rules', payload);
+        return response.data;
+    },
+    updateRule: async (id: number, payload: Partial<{
+        name: string;
+        trigger_sensor_id: string;
+        condition_type: 'GT' | 'LT' | 'GTE' | 'LTE';
+        threshold_value: number;
+        actuator_id: string;
+        action_command: string;
+        cooldown_minutes: number;
+    }>) => {
+        const response = await apiClient.put(`/automation/rules/${id}`, payload);
+        return response.data;
+    },
+    deleteRule: async (id: number) => {
+        const response = await apiClient.delete(`/automation/rules/${id}`);
+        return response.data;
+    },
+    toggleRule: async (id: number, enabled: boolean) => {
+        const response = await apiClient.patch(`/automation/rules/${id}/toggle`, { is_enabled: enabled });
+        return response.data;
     },
 };
 

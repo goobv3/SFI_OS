@@ -31,6 +31,14 @@ const translations = {
     loadingSensors:     '센서 데이터 로딩 중...',
     noSensors:          '이 재배동에 등록된 센서가 없습니다.',
     paused:             '일시정지',
+    statusNormal:       '정상',
+    statusWarnHigh:     '경고 (상)',
+    statusWarnLow:      '경고 (하)',
+    statusCritHigh:     '위험 (상)',
+    statusCritLow:      '위험 (하)',
+    tabEnv:             '환경현황',
+    tabControl:         '제어',
+    tabWeather:         '날씨',
 
     // === 액추에이터 제어 ===
     loadingControls:    '제어 장치 로딩 중...',
@@ -155,6 +163,27 @@ const translations = {
 
     // === 날씨 위젯 ===
     externalWeather:    '외부 기상 정보',
+
+    // === 자동화 룰 엔진 ===
+    tabAutomation:      '자동화',
+    autoTitle:          '자동화 룰',
+    autoAddRule:        '룰 추가',
+    autoNoRules:        '등록된 자동화 룰이 없습니다.',
+    autoRuleName:       '룰 이름',
+    autoSensor:         '트리거 센서',
+    autoCondition:      '조건',
+    autoThreshold:      '기준값',
+    autoActuator:       '대상 액추에이터',
+    autoCommand:        '명령어',
+    autoCooldown:       '쿨다운 (분)',
+    autoEnabled:        '활성',
+    autoDisabled:       '비활성',
+    autoCreate:         '룰 생성',
+    autoEdit:           '룰 편집',
+    autoDelete:         '룰 삭제',
+    autoConfirmDelete:  '이 룰을 삭제하시겠습니까?',
+    autoSaving:         '저장 중...',
+    autoLoading:        '룰 로딩 중...',
   },
 
   en: {
@@ -180,6 +209,14 @@ const translations = {
     loadingSensors:     'Loading sensors...',
     noSensors:          'No sensors registered in this house.',
     paused:             'Paused',
+    statusNormal:       'Normal',
+    statusWarnHigh:     'Warn High',
+    statusWarnLow:      'Warn Low',
+    statusCritHigh:     'Crit High',
+    statusCritLow:      'Crit Low',
+    tabEnv:             'Environment',
+    tabControl:         'Control',
+    tabWeather:         'Weather',
 
     // === Actuator Control ===
     loadingControls:    'Loading controls...',
@@ -304,6 +341,27 @@ const translations = {
 
     // === Weather Widget ===
     externalWeather:    'External Weather Intelligence',
+
+    // === Automation Rules Engine ===
+    tabAutomation:      'Automation',
+    autoTitle:          'Automation Rules',
+    autoAddRule:        'Add Rule',
+    autoNoRules:        'No automation rules configured.',
+    autoRuleName:       'Rule Name',
+    autoSensor:         'Trigger Sensor',
+    autoCondition:      'Condition',
+    autoThreshold:      'Threshold',
+    autoActuator:       'Target Actuator',
+    autoCommand:        'Command',
+    autoCooldown:       'Cooldown (min)',
+    autoEnabled:        'Enabled',
+    autoDisabled:       'Disabled',
+    autoCreate:         'Create Rule',
+    autoEdit:           'Edit Rule',
+    autoDelete:         'Delete Rule',
+    autoConfirmDelete:  'Are you sure you want to delete this rule?',
+    autoSaving:         'Saving...',
+    autoLoading:        'Loading rules...',
   },
 };
 

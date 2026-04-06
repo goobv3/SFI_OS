@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Cloud, Wind, Droplets, Sun, CloudRain, CloudSnow, CloudLightning, Umbrella } from 'lucide-react';
+import { Cloud, Wind, Droplets, Sun, CloudSnow, Umbrella } from 'lucide-react';
 import { smartFarmApi } from '../api/client';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -76,32 +76,36 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ compact = false }) => {
 
     return (
         <div className="w-full">
-            <div className={`grid gap-3 ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} relative`}>
+            <div className={`flex md:grid gap-3 ${compact ? 'md:grid-cols-2' : 'md:grid-cols-2'} relative overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-1 md:pb-0 md:overflow-visible`}>
                 {isLoading && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-lg">
                         <div className="w-6 h-6 border-4 border-neon-blue border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 )}
-                <WeatherCard 
-                    title={getTitle(true)} 
-                    data={kmaWeather} 
-                    isKma={true} 
-                    hoursAhead={hoursAhead} 
-                    setHoursAhead={setHoursAhead} 
-                    t={t} 
-                    getDisplayTime={() => getDisplayTime(true)}
-                    compact={compact}
-                />
-                <WeatherCard 
-                    title={getTitle(false)} 
-                    data={farmWeather} 
-                    isKma={false} 
-                    hoursAhead={hoursAhead} 
-                    setHoursAhead={setHoursAhead} 
-                    t={t} 
-                    getDisplayTime={() => getDisplayTime(false)}
-                    compact={compact}
-                />
+                <div className="snap-center shrink-0 w-[85vw] md:w-auto">
+                    <WeatherCard 
+                        title={getTitle(true)} 
+                        data={kmaWeather} 
+                        isKma={true} 
+                        hoursAhead={hoursAhead} 
+                        setHoursAhead={setHoursAhead} 
+                        t={t} 
+                        getDisplayTime={() => getDisplayTime(true)}
+                        compact={compact}
+                    />
+                </div>
+                <div className="snap-center shrink-0 w-[85vw] md:w-auto">
+                    <WeatherCard 
+                        title={getTitle(false)} 
+                        data={farmWeather} 
+                        isKma={false} 
+                        hoursAhead={hoursAhead} 
+                        setHoursAhead={setHoursAhead} 
+                        t={t} 
+                        getDisplayTime={() => getDisplayTime(false)}
+                        compact={compact}
+                    />
+                </div>
             </div>
         </div>
     );

@@ -36,11 +36,14 @@ pkg_check_modules(MARIADB REQUIRED libmariadb)
 find_library(PAHO_MQTT_C paho-mqtt3as REQUIRED)
 find_library(PAHO_MQTT_CPP paho-mqttpp3 REQUIRED)
 
+find_package(OpenSSL REQUIRED)
+find_package(CURL REQUIRED)
+
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_executable(smartfarm_server ${SOURCES})
 
-target_include_directories(smartfarm_server PRIVATE src ${MARIADB_INCLUDE_DIRS})
+target_include_directories(smartfarm_server PRIVATE src ${MARIADB_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 
 target_link_libraries(smartfarm_server PRIVATE 
     Crow::Crow 
@@ -50,4 +53,8 @@ target_link_libraries(smartfarm_server PRIVATE
     ${MARIADB_LIBRARIES} 
     ${PAHO_MQTT_C} 
     ${PAHO_MQTT_CPP}
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    ${CURL_LIBRARIES}
 )
+

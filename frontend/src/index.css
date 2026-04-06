@@ -8,6 +8,11 @@
   --color-neon-green: #39ff14;
   --color-neon-orange: #ffaa00;
   --color-neon-red: #ff2a2a;
+  /* ── 신규 토큰 ── */
+  --color-neon-purple: #b94fff;
+  --color-neon-teal: #00d4aa;
+  --color-surface-card: #1e2130;
+  --color-surface-elevated: #252836;
 }
 
 @layer base {
@@ -28,5 +33,22 @@
   }
   .glow-text-blue {
     text-shadow: 0 0 5px rgba(102, 252, 241, 0.5), 0 0 10px rgba(102, 252, 241, 0.8);
+  }
+
+  /* ── 신규 애니메이션 유틸리티 ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.3s ease forwards;
+  }
+
+  .hover-lift {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 }

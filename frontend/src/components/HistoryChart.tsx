@@ -50,9 +50,17 @@ export default function HistoryChart({ sensors, initialSensorId, onClose }: Hist
         const startIso = new Date(appliedStart).toISOString();
         const endIso = new Date(appliedEnd).toISOString();
 
+        const diffMs = new Date(appliedEnd).getTime() - new Date(appliedStart).getTime();
+        const daysDiff = diffMs / (1000 * 60 * 60 * 24);
+        
+        let resolution = 'auto';
+        if (daysDiff > 90) resolution = 'daily';
+        else if (daysDiff > 7) resolution = 'hourly';
+        else resolution = 'raw';
+
         const targets = displayMode === 'single' ? [initialSensorId] : sensors.map(s => s.id);
 
-        smartFarmApi.getSensorHistoryByRange(targets, startIso, endIso)
+        smartFarmApi.getSensorHistoryByRange(targets, startIso, endIso, resolution)
             .then(res => {
                 setData(res);
                 setLoading(false);

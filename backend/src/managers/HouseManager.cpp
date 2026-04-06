@@ -10,6 +10,7 @@ HouseManager& HouseManager::getInstance() {
 
 nlohmann::json HouseManager::getHouses() {
     auto& db = Core::Database::getInstance();
+    // 외부 입력 없는 상수 쿼리 → fetchAll 유지
     auto results = db.fetchAll("SELECT house_id, name, display_order FROM houses ORDER BY display_order");
     nlohmann::json arr = nlohmann::json::array();
     for (const auto& row : results) {
@@ -17,14 +18,17 @@ nlohmann::json HouseManager::getHouses() {
         obj["house_id"] = row.at("house_id");
         obj["name"] = row.at("name");
         obj["display_order"] = std::stoi(row.at("display_order"));
-        
-        // 동별 알람/기기 개수 등의 메타데이터 추가 가능
-        std::string sensorQuery = "SELECT COUNT(*) as c FROM sensor_metadata WHERE house_id='" + obj["house_id"].get<std::string>() + "'";
-        auto sCount = db.fetchAll(sensorQuery);
+
+        // house_id 가 외부 입력이므로 PS 사용
+        std::string hid = obj["house_id"].get<std::string>();
+        auto sCount = db.fetchAllPS(
+            "SELECT COUNT(*) as c FROM sensor_metadata WHERE house_id=?",
+            {hid});
         obj["sensor_count"] = sCount.empty() ? 0 : std::stoi(sCount[0].at("c"));
 
-        std::string actuatorQuery = "SELECT COUNT(*) as c FROM actuator_metadata WHERE house_id='" + obj["house_id"].get<std::string>() + "'";
-        auto aCount = db.fetchAll(actuatorQuery);
+        auto aCount = db.fetchAllPS(
+            "SELECT COUNT(*) as c FROM actuator_metadata WHERE house_id=?",
+            {hid});
         obj["actuator_count"] = aCount.empty() ? 0 : std::stoi(aCount[0].at("c"));
 
         arr.push_back(obj);
@@ -35,8 +39,10 @@ nlohmann::json HouseManager::getHouses() {
 nlohmann::json HouseManager::getHouseDevices(const std::string& house_id) {
     auto& db = Core::Database::getInstance();
     nlohmann::json result;
-    
-    auto sResults = db.fetchAll("SELECT * FROM sensor_metadata WHERE house_id='" + house_id + "' ORDER BY display_order");
+
+    auto sResults = db.fetchAllPS(
+        "SELECT * FROM sensor_metadata WHERE house_id=? ORDER BY display_order",
+        {house_id});
     nlohmann::json sArr = nlohmann::json::array();
     for (const auto& row : sResults) {
         nlohmann::json obj;
@@ -45,7 +51,9 @@ nlohmann::json HouseManager::getHouseDevices(const std::string& house_id) {
     }
     result["sensors"] = sArr;
 
-    auto aResults = db.fetchAll("SELECT * FROM actuator_metadata WHERE house_id='" + house_id + "'");
+    auto aResults = db.fetchAllPS(
+        "SELECT * FROM actuator_metadata WHERE house_id=?",
+        {house_id});
     nlohmann::json aArr = nlohmann::json::array();
     for (const auto& row : aResults) {
         nlohmann::json obj;
@@ -59,6 +67,7 @@ nlohmann::json HouseManager::getHouseDevices(const std::string& house_id) {
 
 nlohmann::json HouseManager::getDiscoveredDevices() {
     auto& db = Core::Database::getInstance();
+    // 외부 입력 없는 상수 쿼리 → fetchAll 유지
     auto results = db.fetchAll("SELECT device_id, device_type, first_seen, last_seen, payload FROM discovered_devices ORDER BY last_seen DESC");
     nlohmann::json arr = nlohmann::json::array();
     for (const auto& row : results) {
@@ -73,34 +82,36 @@ nlohmann::json HouseManager::getDiscoveredDevices() {
 
 bool HouseManager::createHouse(const std::string& house_id, const std::string& name) {
     auto& db = Core::Database::getInstance();
+    // COALESCE 는 외부 입력 없음 → fetchAll 유지
     auto r = db.fetchAll("SELECT COALESCE(MAX(display_order),0)+1 as next_order FROM houses");
     int next_order = r.empty() ? 1 : std::stoi(r[0].at("next_order"));
-    std::string sql = "INSERT IGNORE INTO houses (house_id, name, display_order) VALUES ('"
-        + house_id + "','" + name + "'," + std::to_string(next_order) + ")";
-    return db.execute(sql);
+    return db.executePS(
+        "INSERT IGNORE INTO houses (house_id, name, display_order) VALUES (?,?,?)",
+        {house_id, name, std::to_string(next_order)});
 }
 
 bool HouseManager::updateHouse(const std::string& house_id, const std::string& name, int display_order) {
     auto& db = Core::Database::getInstance();
-    std::string sql = "UPDATE houses SET name='" + name + "', display_order=" + std::to_string(display_order) +
-                      " WHERE house_id='" + house_id + "'";
-    return db.execute(sql);
+    return db.executePS(
+        "UPDATE houses SET name=?, display_order=? WHERE house_id=?",
+        {name, std::to_string(display_order), house_id});
 }
 
 bool HouseManager::deleteHouse(const std::string& house_id) {
     auto& db = Core::Database::getInstance();
-    db.execute("DELETE FROM sensor_metadata WHERE house_id='" + house_id + "'");
-    db.execute("DELETE FROM actuator_metadata WHERE house_id='" + house_id + "'");
-    return db.execute("DELETE FROM houses WHERE house_id='" + house_id + "'");
+    db.executePS("DELETE FROM sensor_metadata WHERE house_id=?",   {house_id});
+    db.executePS("DELETE FROM actuator_metadata WHERE house_id=?", {house_id});
+    return db.executePS("DELETE FROM houses WHERE house_id=?",     {house_id});
 }
 
 bool HouseManager::updateHousesOrder(const nlohmann::json& ordered_ids) {
     auto& db = Core::Database::getInstance();
     int order = 0;
     for (const auto& id : ordered_ids) {
-        std::string sql = "UPDATE houses SET display_order=" + std::to_string(order)
-            + " WHERE house_id='" + id.get<std::string>() + "'";
-        if (!db.execute(sql)) return false;
+        if (!db.executePS(
+                "UPDATE houses SET display_order=? WHERE house_id=?",
+                {std::to_string(order), id.get<std::string>()}))
+            return false;
         ++order;
     }
     return true;
@@ -117,22 +128,22 @@ bool HouseManager::createSensor(const nlohmann::json& body) {
     std::string unit      = body.value("unit", "");
     int display_order     = body.value("display_order", 0);
     if (sensor_id.empty() || house_id.empty()) return false;
-    std::string sql = "INSERT IGNORE INTO sensor_metadata "
-        "(sensor_id, house_id, alias, type, unit, display_order) VALUES ('"
-        + sensor_id + "','" + house_id + "','" + alias + "','" + type + "','" + unit
-        + "'," + std::to_string(display_order) + ")";
-    return db.execute(sql);
+    return db.executePS(
+        "INSERT IGNORE INTO sensor_metadata "
+        "(sensor_id, house_id, alias, type, unit, display_order) VALUES (?,?,?,?,?,?)",
+        {sensor_id, house_id, alias, type, unit, std::to_string(display_order)});
 }
 
 bool HouseManager::updateSensor(const std::string& sensor_id, const nlohmann::json& body) {
     auto& db = Core::Database::getInstance();
-    // NULL / 숫자 / 문자열을 SQL 값으로 변환하는 헬퍼
+    // NULL / 숫자 / 문자열을 SQL 값으로 변환하는 헬퍼 (수치 컬럼은 PS 바인딩 불가 이슈 없음)
     auto toSqlVal = [](const nlohmann::json& v) -> std::string {
         if (v.is_null()) return "NULL";
         if (v.is_number()) return std::to_string(v.get<double>());
         if (v.is_string() && v.get<std::string>() == "") return "NULL";
         return "'" + v.get<std::string>() + "'";
     };
+    // SET 절은 기존 방식 유지(동적 컬럼 목록), WHERE의 sensor_id 만 PS 바인딩
     std::vector<std::string> parts;
     if (body.contains("alias"))         parts.push_back("alias='"         + body["alias"].get<std::string>()         + "'");
     if (body.contains("type"))          parts.push_back("type='"          + body["type"].get<std::string>()          + "'");
@@ -152,13 +163,13 @@ bool HouseManager::updateSensor(const std::string& sensor_id, const nlohmann::js
     if (parts.empty()) return true;
     std::string sql = "UPDATE sensor_metadata SET ";
     for (size_t i = 0; i < parts.size(); ++i) { sql += parts[i]; if (i+1 < parts.size()) sql += ","; }
-    sql += " WHERE sensor_id='" + sensor_id + "'";
-    return db.execute(sql);
+    sql += " WHERE sensor_id=?";
+    return db.executePS(sql, {sensor_id});
 }
 
 bool HouseManager::deleteSensor(const std::string& sensor_id) {
-    return Core::Database::getInstance().execute(
-        "DELETE FROM sensor_metadata WHERE sensor_id='" + sensor_id + "'");
+    return Core::Database::getInstance().executePS(
+        "DELETE FROM sensor_metadata WHERE sensor_id=?", {sensor_id});
 }
 
 // ── 액추에이터 메타데이터 CRUD ──
@@ -170,10 +181,9 @@ bool HouseManager::createActuator(const nlohmann::json& body) {
     std::string alias       = body.value("alias", actuator_id);
     std::string type        = body.value("type", "GENERIC");
     if (actuator_id.empty() || house_id.empty()) return false;
-    std::string sql = "INSERT IGNORE INTO actuator_metadata "
-        "(actuator_id, house_id, alias, type) VALUES ('"
-        + actuator_id + "','" + house_id + "','" + alias + "','" + type + "')";
-    return db.execute(sql);
+    return db.executePS(
+        "INSERT IGNORE INTO actuator_metadata (actuator_id, house_id, alias, type) VALUES (?,?,?,?)",
+        {actuator_id, house_id, alias, type});
 }
 
 bool HouseManager::updateActuator(const std::string& actuator_id, const nlohmann::json& body) {
@@ -184,20 +194,20 @@ bool HouseManager::updateActuator(const std::string& actuator_id, const nlohmann
     if (parts.empty()) return true;
     std::string sql = "UPDATE actuator_metadata SET ";
     for (size_t i = 0; i < parts.size(); ++i) { sql += parts[i]; if (i+1 < parts.size()) sql += ","; }
-    sql += " WHERE actuator_id='" + actuator_id + "'";
-    return db.execute(sql);
+    sql += " WHERE actuator_id=?";
+    return db.executePS(sql, {actuator_id});
 }
 
 bool HouseManager::deleteActuator(const std::string& actuator_id) {
-    return Core::Database::getInstance().execute(
-        "DELETE FROM actuator_metadata WHERE actuator_id='" + actuator_id + "'");
+    return Core::Database::getInstance().executePS(
+        "DELETE FROM actuator_metadata WHERE actuator_id=?", {actuator_id});
 }
 
 // ── 감지기기 삭제 ──
 
 bool HouseManager::deleteDiscoveredDevice(const std::string& device_id) {
-    return Core::Database::getInstance().execute(
-        "DELETE FROM discovered_devices WHERE device_id='" + device_id + "'");
+    return Core::Database::getInstance().executePS(
+        "DELETE FROM discovered_devices WHERE device_id=?", {device_id});
 }
 
 } // namespace Managers

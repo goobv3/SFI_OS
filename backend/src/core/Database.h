@@ -13,6 +13,8 @@ public:
     void disconnect();
     bool execute(const std::string& query);
     std::vector<std::map<std::string, std::string>> fetchAll(const std::string& query);
+    bool executePS(const std::string& sql, const std::vector<std::string>& params);
+    std::vector<std::map<std::string, std::string>> fetchAllPS(const std::string& sql, const std::vector<std::string>& params);
 private:
     Database();
     ~Database();
