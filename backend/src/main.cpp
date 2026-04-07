@@ -1,12 +1,14 @@
 /**
  * @file main.cpp
- * @brief 스마트팜 C++ 백엔드 서버 진입점
+ * @brief 스마트팜 C++ 백엔드 서버 진입점 (EntryPoint)
  *
- * Python FastAPI → C++ Crow 마이그레이션 메인 파일입니다.
- * 1. MariaDB 연결 초기화
- * 2. MQTT 브로커 연결 및 센서 토픽 구독
- * 3. REST API 라우트 등록
- * 4. 멀티스레드 Crow 웹서버 시작 (포트 8000)
+ * ▶ 시스템 아키텍처 (Python FastAPI → C++ Crow 전환)
+ * 1. MariaDB 연결 초기화: Database 클래스로 DB 싱글톤 객체 준비
+ * 2. MQTT 브로커 연결 및 센서/날씨 토픽 와일드카드(+) 구독 처리
+ * 3. REST API 라우트 조립: API::Router::setupRoutes() 활용
+ * 4. 멀티스레드 기반 Crow 웹서버(포트 8000) 구동 완료
+ *
+ * 이 파일은 백엔드 서버의 뼈대 역할을 하며 컴파일과 서버 시작의 중심이 됩니다.
  */
 #include <iostream>
 #include <string>
@@ -21,6 +23,10 @@
 
 
 int main() {
+    // [보정] 모든 로그를 backend.log 파일로 리다이렉트하여 웹 모니터링 콘솔에 표시 가능하게 함
+    std::freopen("backend.log", "w", stdout);
+    std::setvbuf(stdout, NULL, _IOLBF, 0); // 라인 버퍼링 설정 (실시간 기록성 향상)
+
     std::cout << "=======================================================" << std::endl;
     std::cout << "  Smart Farm Intelligence OS - C++ Backend v1.0" << std::endl;
     std::cout << "  Powered by Crow + MariaDB + Paho MQTT" << std::endl;

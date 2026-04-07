@@ -1,3 +1,12 @@
+/**
+ * @file WeatherManager.cpp
+ * @brief WeatherManager 클래스 구현
+ *
+ * ▶ 외부 API 통신:
+ *   - cpr(C++ Requests) 라이브러리를 사용하여 KMA(기상청) 초단기 예보 API에 접속
+ *   - nlohmann/json으로 응답 데이터 파싱
+ *   - KMA의 다양한 변수(T1H, REH, WSD 등)를 표준 내부 형식으로 매핑
+ */
 #include "WeatherManager.h"
 #include "../core/Database.h"
 #include <string>
@@ -15,6 +24,9 @@ WeatherManager& WeatherManager::getInstance() {
     return instance;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getLatestWeather: 내부/외부 기상 데이터를 병합하여 반환
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json WeatherManager::getLatestWeather(int hours_ahead) {
     auto& db = Core::Database::getInstance();
     nlohmann::json res;
@@ -46,7 +58,13 @@ nlohmann::json WeatherManager::getLatestWeather(int hours_ahead) {
     return res;
 }
 
-
+// ─────────────────────────────────────────────────────────────────────────────
+// getLiveForecast: 기상청 API를 실시간 조회하는 부분
+//
+// 1. KMA_SERVICE_KEY 환경 변수가 필수
+// 2. 현재 시각(KST)을 구하여 45분 기준으로 가장 최신의 base_time 설정
+// 3. getUltraSrtFcst를 호출하여 초단기예보 파싱
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json WeatherManager::getLiveForecast(int hours_ahead) {
     const char* service_key_env = std::getenv("KMA_SERVICE_KEY");
     const char* lat_env = std::getenv("LAT");
@@ -232,6 +250,9 @@ std::pair<int, int> WeatherManager::convertGrid(double lat, double lon) {
     return {nx, ny};
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// recordFarmWeather: 내부 농장의 로컬 기상대에서 보내온 기상 데이터를 DB 저장
+// ─────────────────────────────────────────────────────────────────────────────
 void WeatherManager::recordFarmWeather(const nlohmann::json& data) {
     try {
         auto& db = Core::Database::getInstance();

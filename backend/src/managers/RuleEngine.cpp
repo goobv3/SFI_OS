@@ -1,3 +1,7 @@
+/**
+ * @file RuleEngine.cpp
+ * @brief RuleEngine 클래스 구현 — 자동화 룰 평가 및 CRUD
+ */
 #include "RuleEngine.h"
 #include "ControlManager.h"
 #include "../core/Database.h"
@@ -7,14 +11,24 @@
 
 namespace Managers {
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getInstance — Meyers' Singleton
+// ─────────────────────────────────────────────────────────────────────────────
 RuleEngine& RuleEngine::getInstance() {
     static RuleEngine instance;
     return instance;
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // evaluate: 센서값이 들어올 때마다 호출. 해당 sensor_id의 활성 룰을 평가.
-// ─────────────────────────────────────────────────────────────────
+//
+// 동작 절차:
+//  1. Trigger 조건이 주어진 sensor_id이고, is_enabled=1 인 룰 조회
+//  2. 룰의 임계값(threshold_value)과 수신된 value를 condition_type(GTE, LT 등)에 맞춰 비교
+//  3. 조건이 맞으면 쿨다운 검사 (현재시간 - last_triggered_at > cooldown_minutes)
+//  4. 쿨다운이 지났으면 ControlManager를 통해 액추에이터 제어 명령 전송
+//  5. 룰의 마지막 실행 시간(last_triggered_at) 갱신
+// ─────────────────────────────────────────────────────────────────────────────
 void RuleEngine::evaluate(const std::string& sensor_id, double value) {
     auto& db = Core::Database::getInstance();
 
@@ -33,15 +47,17 @@ void RuleEngine::evaluate(const std::string& sensor_id, double value) {
 
         const std::string& ctype = rule.at("condition_type");
         bool conditionMet = false;
+        
+        // condition_type에 따른 비교 연산
         if      (ctype == "GT")  conditionMet = (value >  threshold);
         else if (ctype == "LT")  conditionMet = (value <  threshold);
         else if (ctype == "GTE") conditionMet = (value >= threshold);
         else if (ctype == "LTE") conditionMet = (value <= threshold);
 
-        if (!conditionMet) continue;
+        if (!conditionMet) continue; // 조건 미달 시 다음 룰로
 
         // ── 쿨다운 체크 ──
-        int cooldown_minutes = 5;
+        int cooldown_minutes = 5; // 기본값
         try { cooldown_minutes = std::stoi(rule.at("cooldown_minutes")); } catch (...) {}
 
         const std::string& last_triggered = rule.at("last_triggered_at");
@@ -63,6 +79,7 @@ void RuleEngine::evaluate(const std::string& sensor_id, double value) {
             time_t now_time  = std::time(nullptr);
             double elapsed_minutes = std::difftime(now_time, last_time) / 60.0;
 
+            // 아직 쿨다운 시간이 지나지 않았으면 제어명령 스킵
             if (elapsed_minutes < static_cast<double>(cooldown_minutes)) {
                 std::cout << "[RuleEngine] Rule " << rule.at("id")
                           << " is in cooldown (" << elapsed_minutes << " min elapsed)." << std::endl;
@@ -70,7 +87,7 @@ void RuleEngine::evaluate(const std::string& sensor_id, double value) {
             }
         }
 
-        // ── 조건 통과: 제어 명령 전송 ──
+        // ── 조건 통과 및 쿨다운 지남: 제어 명령 전송 ──
         const std::string& actuator_id    = rule.at("actuator_id");
         const std::string& action_command = rule.at("action_command");
 
@@ -86,9 +103,11 @@ void RuleEngine::evaluate(const std::string& sensor_id, double value) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────
-// getRules: house_id 기준 룰 목록 반환
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// getRules: 특정 하우스 또는 전체의 룰 목록을 반환
+//
+// LEFT JOIN을 이용해 센서 및 액추에이터의 alias(별명)를 같이 가져와 프론트엔드 표시에 씁니다.
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json RuleEngine::getRules(const std::string& house_id) {
     auto& db = Core::Database::getInstance();
     std::vector<std::map<std::string,std::string>> rows;
@@ -120,9 +139,9 @@ nlohmann::json RuleEngine::getRules(const std::string& house_id) {
     return arr;
 }
 
-// ─────────────────────────────────────────────────────────────────
-// createRule
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// createRule: 새로운 룰 삽입
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json RuleEngine::createRule(const nlohmann::json& body) {
     auto& db = Core::Database::getInstance();
 
@@ -150,21 +169,22 @@ nlohmann::json RuleEngine::createRule(const nlohmann::json& body) {
 
     if (!ok) return {{"status", "error"}, {"message", "DB insert failed"}};
 
-    // 삽입된 ID 반환
+    // 새로 생성된 룰의 ID를 조회 (LAST_INSERT_ID)
     auto res = db.fetchAll("SELECT LAST_INSERT_ID() as id");
     std::string new_id = res.empty() ? "" : res[0].at("id");
     return {{"status", "created"}, {"id", new_id}};
 }
 
-// ─────────────────────────────────────────────────────────────────
-// updateRule
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// updateRule: 룰 필드 수정사항에 대한 동적 쿼리 생성
+// ─────────────────────────────────────────────────────────────────────────────
 bool RuleEngine::updateRule(long long id, const nlohmann::json& body) {
     auto& db = Core::Database::getInstance();
 
     std::vector<std::string> parts;
     std::vector<std::string> vals;
 
+    // 동적 쿼리 구성을 위한 람다 (문자열 및 숫자)
     auto addStr = [&](const char* col, const std::string& key) {
         if (body.contains(key)) {
             parts.push_back(std::string(col) + "=?");
@@ -201,18 +221,18 @@ bool RuleEngine::updateRule(long long id, const nlohmann::json& body) {
     return db.executePS(sql, vals);
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // deleteRule
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 bool RuleEngine::deleteRule(long long id) {
     return Core::Database::getInstance().executePS(
         "DELETE FROM automation_rules WHERE id=?",
         {std::to_string(id)});
 }
 
-// ─────────────────────────────────────────────────────────────────
-// toggleRule
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// toggleRule: 룰의 활성 상태(is_enabled) 전환
+// ─────────────────────────────────────────────────────────────────────────────
 bool RuleEngine::toggleRule(long long id, bool enabled) {
     return Core::Database::getInstance().executePS(
         "UPDATE automation_rules SET is_enabled=? WHERE id=?",

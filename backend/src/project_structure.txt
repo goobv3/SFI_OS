@@ -1,0 +1,33 @@
+새 볼륨 볼륨에 대한 폴더 경로의 목록입니다.
+볼륨 일련 번호는 92E8-FED4입니다.
+G:.
+│  main.cpp
+│  
+├─api
+│      Router.cpp
+│      Router.h
+│      
+├─core
+│      Database.cpp
+│      Database.h
+│      EmailSender.cpp
+│      EmailSender.h
+│      JwtUtils.cpp
+│      JwtUtils.h
+│      MqttClient.cpp
+│      MqttClient.h
+│      
+└─managers
+        ControlManager.cpp
+        ControlManager.h
+        HouseManager.cpp
+        HouseManager.h
+        RuleEngine.cpp
+        RuleEngine.h
+        SensorManager.cpp
+        SensorManager.h
+        SiteManager.cpp
+        SiteManager.h
+        WeatherManager.cpp
+        WeatherManager.h
+        

@@ -1,3 +1,11 @@
+/**
+ * @file SiteManager.cpp
+ * @brief SiteManager 클래스 구현
+ *
+ * ▶ 복합 쿼리 설명
+ *   - getSites() 에서는 LEFT JOIN 과 서브쿼리를 사용해 하우스 수와 액티브 알람 갯수를 사이트 단위로 집계합니다.
+ *   - getSiteOverview() 에서는 최근 10분간의 센서 데이터 평균을 도출합니다.
+ */
 #include "SiteManager.h"
 #include "../core/Database.h"
 #include <iostream>
@@ -9,6 +17,9 @@ SiteManager& SiteManager::getInstance() {
     return instance;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getSites: 사이트 단위 집계 현황 반환 (하우스 개수, 알람 개수 포함)
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json SiteManager::getSites() {
     auto& db = Core::Database::getInstance();
     std::string sql = R"(
@@ -40,6 +51,9 @@ nlohmann::json SiteManager::getSites() {
     return result;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getSiteOverview: 사이트에 속한 각 센서 타입(온도, 습도 등)의 최근 평균 반환
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json SiteManager::getSiteOverview(const std::string& site_id) {
     auto& db = Core::Database::getInstance();
     std::string sql = R"(
@@ -67,6 +81,9 @@ nlohmann::json SiteManager::getSiteOverview(const std::string& site_id) {
     return overview;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getSiteHouses: 사이트 소속 하우스 목록 반환
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json SiteManager::getSiteHouses(const std::string& site_id) {
     auto& db = Core::Database::getInstance();
     std::string sql = "SELECT house_id, name, display_order FROM houses WHERE site_id = ? ORDER BY display_order ASC, name ASC";
@@ -83,6 +100,7 @@ nlohmann::json SiteManager::getSiteHouses(const std::string& site_id) {
     return result;
 }
 
+// ── 단순 CRUD (생성, 수정, 삭제) ──
 bool SiteManager::createSite(const std::string& site_id, const std::string& name, const std::string& location) {
     auto& db = Core::Database::getInstance();
     std::string sql = "INSERT INTO sites (site_id, name, location) VALUES (?, ?, ?)";

@@ -12,6 +12,7 @@
 #include "../managers/WeatherManager.h"
 #include "../managers/RuleEngine.h"
 #include "../managers/SiteManager.h"
+#include "../managers/SystemManager.h"
 #include "../core/JwtUtils.h"
 #include "../core/Database.h"
 #include <nlohmann/json.hpp>
@@ -20,6 +21,12 @@
 
 namespace API {
 
+// ─────────────────────────────────────────────────────────────────────────────
+// setupRoutes: 모든 HTTP 엔드포인트와 메소드별 처리 로직을 구현합니다.
+//
+// 내부적으로 requireAuth 람다를 선언해 JwtUtils::verifyToken()를 통한 권한 확인을 수행합니다.
+// JSON 파싱은 nlohmann::json을 사용합니다.
+// ─────────────────────────────────────────────────────────────────────────────
 void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
 
     // JSON 응답을 위한 헬퍼 람다
@@ -166,7 +173,7 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
     });
 
     // =========================================================
-    // 1. 하우스(동) 관련 API
+    // 1. 하우스(동/온실) 단위 관리 API
     // =========================================================
 
     // GET+POST /api/houses
@@ -447,7 +454,7 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
     });
 
     // =========================================================
-    // 8. 자동화 룰 엔진 API
+    // 8. 자동화 룰 엔진 API (센서 수치 연동 자동제어 조건 관리)
     // =========================================================
 
     // GET ?house_id= / POST /api/automation/rules
@@ -501,6 +508,41 @@ void Router::setupRoutes(crow::App<crow::CORSHandler>& app) {
     // =========================================================
     CROW_ROUTE(app, "/")([](){
         return "Smart Farm Intelligence OS - C++ Backend v1.0 [Optimized by Antigravity]";
+    });
+
+    // =========================================================
+    // 9. 시스템 모니터링 및 로그 API
+    // =========================================================
+
+    // 시스템 상태 (CPU, RAM, Disk, Service Status)
+    CROW_ROUTE(app, "/api/admin/system/status")
+    .methods(crow::HTTPMethod::GET)([&](const crow::request& req) {
+        auto payload = requireAuth(req);
+        if (!payload.valid || (payload.role != "admin" && payload.role != "operator")) {
+            return crow::response(403, "Admin/Operator role required");
+        }
+        
+        return jsonResponse(Managers::SystemManager::getInstance().getSystemStatus());
+    });
+
+    // 서버 로그 조회 (최근 N줄)
+    CROW_ROUTE(app, "/api/admin/system/logs")
+    .methods(crow::HTTPMethod::GET)([&](const crow::request& req) {
+        auto payload = requireAuth(req);
+        if (!payload.valid || (payload.role != "admin" && payload.role != "operator")) {
+            return crow::response(403, "Admin/Operator role required");
+        }
+
+        int lines = 50;
+        if (req.url_params.get("lines")) {
+            try { lines = std::stoi(req.url_params.get("lines")); } catch (...) {}
+        }
+
+        auto logs = Managers::SystemManager::getInstance().getLatestLogs(lines);
+        nlohmann::json logArray = nlohmann::json::array();
+        for (const auto& log : logs) logArray.push_back(log);
+
+        return jsonResponse(logArray);
     });
 
     std::cout << "[Router] ✅ 모든 REST API 라우트 등록 완료." << std::endl;

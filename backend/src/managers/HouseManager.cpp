@@ -1,3 +1,11 @@
+/**
+ * @file HouseManager.cpp
+ * @brief HouseManager 클래스 구현
+ *
+ * ▶ 데이터 조회 방식
+ *   - getHouses()는 하우스 단위 정보와 함께 센서/액추에이터 갯수를 동적으로 카운트하여 반환
+ *   - getHouseDevices()는 센서, 액추에이터 메타데이터를 분리하여 JSON 객체 내 배열 형태로 반환
+ */
 #include "HouseManager.h"
 #include "../core/Database.h"
 
@@ -8,6 +16,9 @@ HouseManager& HouseManager::getInstance() {
     return instance;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getHouses: 하우스 목록 조회 + 하우스별 센서/액추에이터 계수 반환
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json HouseManager::getHouses() {
     auto& db = Core::Database::getInstance();
     // 외부 입력 없는 상수 쿼리 → fetchAll 유지
@@ -36,6 +47,9 @@ nlohmann::json HouseManager::getHouses() {
     return arr;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getHouseDevices: 특정 하우스에 종속된 모든 센서와 액추에이터 메타데이터 조회
+// ─────────────────────────────────────────────────────────────────────────────
 nlohmann::json HouseManager::getHouseDevices(const std::string& house_id) {
     auto& db = Core::Database::getInstance();
     nlohmann::json result;
@@ -80,6 +94,9 @@ nlohmann::json HouseManager::getDiscoveredDevices() {
 
 // ── 하우스 CRUD ──
 
+// ─────────────────────────────────────────────────────────────────────────────
+// createHouse: 하우스 생성 시 display_order를 기존 최대값 + 1 로 자동 계산
+// ─────────────────────────────────────────────────────────────────────────────
 bool HouseManager::createHouse(const std::string& house_id, const std::string& name) {
     auto& db = Core::Database::getInstance();
     // COALESCE 는 외부 입력 없음 → fetchAll 유지
@@ -119,6 +136,9 @@ bool HouseManager::updateHousesOrder(const nlohmann::json& ordered_ids) {
 
 // ── 센서 메타데이터 CRUD ──
 
+// ─────────────────────────────────────────────────────────────────────────────
+// createSensor: 새 센서 메타데이터 정보를 DB에 저장
+// ─────────────────────────────────────────────────────────────────────────────
 bool HouseManager::createSensor(const nlohmann::json& body) {
     auto& db = Core::Database::getInstance();
     std::string sensor_id = body.value("sensor_id", "");
@@ -134,6 +154,9 @@ bool HouseManager::createSensor(const nlohmann::json& body) {
         {sensor_id, house_id, alias, type, unit, std::to_string(display_order)});
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// updateSensor: 변경된 필드만 동적으로 UPDATE 쿼리를 생성하여 반영
+// ─────────────────────────────────────────────────────────────────────────────
 bool HouseManager::updateSensor(const std::string& sensor_id, const nlohmann::json& body) {
     auto& db = Core::Database::getInstance();
     // NULL / 숫자 / 문자열을 SQL 값으로 변환하는 헬퍼 (수치 컬럼은 PS 바인딩 불가 이슈 없음)

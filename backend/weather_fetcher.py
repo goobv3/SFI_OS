@@ -1,3 +1,17 @@
+"""
+@file weather_fetcher.py
+@brief KMA(기상청) 기상 데이터 백그라운드 수집 데몬 프로세스 스크립트.
+
+[역할 및 아키텍처]
+- 이 스크립트는 C++ 백엔드 서버와 별개로, 정기적으로 기상청 API에 접속해 데이터를 가져와 MariaDB에 적재합니다.
+- C++ 백엔드가 실시간 통신 오버헤드를 줄일 수 있도록 도와줍니다.
+- asyncio와 httpx를 사용하여 비동기적으로 빠르고 안정적으로 외부 HTTP 통신을 수행합니다.
+
+[환경변수]
+- KMA_HUB_AUTH_KEY : 기상자료개방포털 API 키
+- KMA_SERVICE_KEY : 공공데이터포털(단기예보) API 키
+- DB 설정 (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)
+"""
 import asyncio
 import os
 import pymysql
@@ -19,7 +33,9 @@ DB_NAME = os.getenv("DB_NAME", "smartfarm")
 
 def convert_grid(lat, lon):
     """
-    위경도를 기상청 격자 좌표(nx, ny)로 변환합니다.
+    [기상청 공식 위경도 -> XY 격자 변환 함수]
+    WGS84 위도/경도를 기상청의 LCC(Lambert Conformal Conic) 격자망 좌표(X, Y)로 변환합니다.
+    초단기 및 단기예보 OpenAPI 호출 시 반드시 이 격자 좌표를 파라미터로 사용해야 합니다.
     """
     RE = 6371.00877
     GRID = 5.0

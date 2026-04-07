@@ -16,12 +16,14 @@ import { useLanguage } from './i18n/LanguageContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import SiteOverview from './components/SiteOverview';
+import SystemMonitor from './components/SystemMonitor';
 
-type Tab = 'env' | 'control' | 'weather' | 'automation';
+type Tab = 'env' | 'control' | 'weather' | 'automation' | 'system';
 
 function MainApp() {
   const { t, lang, setLang } = useLanguage();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'operator';
 
   const [sites, setSites] = useState<any[]>([]);
   const [expandedSites, setExpandedSites] = useState<string[]>([]);
@@ -190,7 +192,7 @@ function MainApp() {
           )}
         </div>
 
-        {/* 하단: 날씨 토글 + 시스템 상태 */}
+        {/* 하단: 날씨 토글 + 관리 메뉴 */}
         <div className="border-t border-cyber-border/20 px-4 py-3 space-y-2 shrink-0">
           <button
             onClick={() => setActiveTab('weather')}
@@ -199,9 +201,28 @@ function MainApp() {
             <span className="flex items-center gap-1.5">🌤 {t('tabWeather')}</span>
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeTab === 'weather' ? 'rotate-180' : ''}`} />
           </button>
+
+          {/* 시스템 모니터링 (Admin Only) */}
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setActiveTab('system');
+                setViewMode('overview'); // 특별 뷰는 오버뷰 모드(하우스 미선택)와 조합
+              }}
+              className={`w-full flex items-center gap-1.5 text-xs transition py-1.5 px-2 rounded-lg border
+                ${activeTab === 'system' 
+                  ? 'bg-neon-blue/10 border-neon-blue/40 text-neon-blue font-bold shadow-[0_0_8px_rgba(102,252,241,0.2)]' 
+                  : 'text-gray-400 hover:text-gray-200 border-transparent hover:bg-white/5'
+                }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              시스템 모니터링
+            </button>
+          )}
+
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
-            {t('systemOnline')}
+            {t('systemOnline')} (Role: {user?.role || 'None'})
           </div>
         </div>
       </aside>
@@ -352,6 +373,25 @@ function MainApp() {
               <span className="text-sm mb-1">{t('noLocationSelected')}</span>
               <span className="text-xs">{t('noLocationHint')}</span>
             </div>
+          )}
+
+          {/* ── 시스템 모니터링 탭 (보안 적용) ── */}
+          {activeTab === 'system' && (
+            isAdmin ? (
+              <SystemMonitor />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-red-500 bg-red-500/5 border border-red-500/20 rounded-xl">
+                <Activity className="w-12 h-8 mb-4 animate-pulse" />
+                <h2 className="text-lg font-bold mb-2">접근 권한 없음</h2>
+                <p className="text-sm text-gray-500">관리자 또는 오퍼레이터 권한이 필요한 메뉴입니다.</p>
+                <button 
+                  onClick={() => setActiveTab('env')}
+                  className="mt-6 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 rounded-lg text-xs font-bold transition"
+                >
+                  대시보드로 돌아가기
+                </button>
+              </div>
+            )
           )}
         </main>
       </div>

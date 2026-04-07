@@ -217,6 +217,16 @@ export const smartFarmApi = {
         const response = await apiClient.patch(`/automation/rules/${id}/toggle`, { is_enabled: enabled });
         return response.data;
     },
+
+    // --- [7. 시스템 모니터링 및 로그] ---
+    getSystemStatus: async () => {
+        const response = await apiClient.get('/admin/system/status');
+        return response.data; // { services: { mariadb, mosquitto }, resources: { cpu, ram, disk }, uptime: { start_time } }
+    },
+    getSystemLogs: async (lines: number = 50) => {
+        const response = await apiClient.get(`/admin/system/logs?lines=${lines}`);
+        return response.data; // ["line 1", "line 2", ...]
+    },
 };
 
 export default apiClient;
